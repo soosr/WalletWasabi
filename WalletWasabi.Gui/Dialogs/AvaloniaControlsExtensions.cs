@@ -27,15 +27,15 @@ namespace Avalonia.Controls
 
 		private static async Task<string[]> ShowAsync(this FileDialog me, Window parent, bool fallBack)
 		{
-			if (fallBack)
-			{
-				try
-				{
-					return await ShowOpenSaveFileDialogAsync(me, parent);
-				}
-				catch (Exception ex)
-				{
-					Logger.LogWarning(ex);
+			//if (fallBack)
+			//{
+				//try
+				//{
+				//	return await ShowOpenSaveFileDialogAsync(me, parent);
+				//}
+				//catch (Exception ex)
+				//{
+				//	Logger.LogWarning(ex);
 
 					string title = !string.IsNullOrWhiteSpace(me.Title)
 						? me.Title
@@ -77,12 +77,12 @@ namespace Avalonia.Controls
 					{
 						return Array.Empty<string>();
 					}
-				}
-			}
-			else
-			{
-				return await ShowOpenSaveFileDialogAsync(me, parent);
-			}
+				//}
+			//}
+			//else
+			//{
+			//	return await ShowOpenSaveFileDialogAsync(me, parent);
+			//}
 		}
 
 		private static async Task<string[]> ShowOpenSaveFileDialogAsync(FileDialog me, Window parent)
