@@ -5,18 +5,11 @@
              xmlns:converters="using:WalletWasabi.Gui.Converters"
              xmlns:vm="using:WalletWasabi.Gui.ViewModels"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="671" d:DesignHeight="32"
              x:DataType="vm:StatusBarViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.StatusBar.StatusBar">
-  <UserControl.Resources>
-    <converters:FilterLeftStatusConverter x:Key="FilterLeftStatusConverter" />
-    <converters:ShowCursorConverter x:Key="ShowCursorConverter" />
-    <converters:ShouldDisplayValueConverter x:Key="ShouldDisplayValueConverter" />
-    <converters:PascalToPhraseConverter x:Key="PascalToPhraseConverter" />
-    <converters:RpcStatusStringConverter x:Key="RpcStatusStringConverter" />
-  </UserControl.Resources>
-
   <Panel Background="{DynamicResource RegionColor}">
     <PathIcon Data="{StaticResource checkmark_circle_filled}"
               Foreground="{StaticResource SystemAccentColor}"
@@ -29,10 +22,21 @@
       </Interaction.Behaviors>
       <FlyoutBase.AttachedFlyout>
         <Flyout Placement="Top" ShowMode="TransientWithDismissOnPointerMoveAway">
-          <Panel Height="100">
-            <TextBlock Text="Attached Flyout!"
-                       VerticalAlignment="Center"
-                       Margin="10" />
+          <Panel TextBlock.Foreground="{DynamicResource TextControlForeground}"
+                 TextBlock.FontSize="14">
+            <Border CornerRadius="4">
+              <StackPanel Spacing="16">
+                <c:StatusItem Icon="{StaticResource checkmark_filled}"
+                              Title="Tor"
+                              StatusText="is running"/>
+                <c:StatusItem Icon="{StaticResource connector_regular}"
+                              Title="Backend"
+                              StatusText="is running" />
+                <c:StatusItem Icon="{StaticResource entities_regular}"
+                              Title="Peers"
+                              StatusText="3 connected" />
+              </StackPanel>
+            </Border>
           </Panel>
         </Flyout>
       </FlyoutBase.AttachedFlyout>
