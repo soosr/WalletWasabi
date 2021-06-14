@@ -50,7 +50,7 @@
                   <Setter Property="Margin" Value="31 36 31 0" />
               </Style>
             </Panel.Styles>
-            <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
+            <Border Background="{DynamicResource RegionColor}" IsHitTestVisible="False" />
             <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
           </Panel>
         </DockPanel>
