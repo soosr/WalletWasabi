@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:converters="using:WalletWasabi.Gui.Converters"
              xmlns:vm="using:WalletWasabi.Gui.ViewModels"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
@@ -22,72 +21,48 @@
       </Interaction.Behaviors>
       <FlyoutBase.AttachedFlyout>
         <Flyout Placement="Top" ShowMode="TransientWithDismissOnPointerMoveAway">
-          <Panel TextBlock.Foreground="{DynamicResource TextControlForeground}"
-                 TextBlock.FontSize="14">
-            <Border CornerRadius="4">
-              <StackPanel Spacing="16">
-                <c:StatusItem Icon="{StaticResource checkmark_filled}"
-                              Title="Tor"
-                              StatusText="is running"/>
-                <c:StatusItem Icon="{StaticResource connector_regular}"
-                              Title="Backend"
-                              StatusText="is running" />
-                <c:StatusItem Icon="{StaticResource entities_regular}"
-                              Title="Peers"
-                              StatusText="3 connected" />
-              </StackPanel>
-            </Border>
-          </Panel>
+          <StackPanel TextBlock.Foreground="{DynamicResource TextControlForeground}"
+                 TextBlock.FontSize="14"
+                 MaxWidth="160"
+                 ClipToBounds="False">
+
+            <!-- Status -->
+            <StackPanel Spacing="16">
+              <c:StatusItem Icon="{StaticResource tor_icon}"
+                            Title="Tor"
+                            StatusText="is running"/>
+              <c:StatusItem Icon="{StaticResource connector_regular}"
+                            Title="Backend"
+                            StatusText="is running" />
+              <c:StatusItem Icon="{StaticResource entities_regular}"
+                            Title="Peers"
+                            StatusText="3 connected" />
+            </StackPanel>
+            <Separator Margin="-12 16"/>
+
+            <!-- Update -->
+            <StackPanel Spacing="10">
+              <c:StatusItem Icon="{StaticResource arrow_clockwise_regular}"
+                            Title="Update available"
+                            StatusText="Version 4.20 is now available" />
+              <Button Classes="plain">
+                <StackPanel Spacing="5" Orientation="Horizontal">
+                  <PathIcon Data="{StaticResource arrow_download_regular}" Height="13"
+                            Foreground="{StaticResource SystemAccentColor}" />
+                  <TextBlock Text="Update now" Foreground="{StaticResource SystemAccentColor}" />
+                </StackPanel>
+              </Button>
+
+              <Button Classes="plain">
+                <StackPanel Spacing="5" Orientation="Horizontal">
+                  <PathIcon Data="{StaticResource clock_regular}" Height="13" />
+                  <TextBlock Text="Ask me later" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
+          </StackPanel>
         </Flyout>
       </FlyoutBase.AttachedFlyout>
     </PathIcon>
   </Panel>
-
-  <!-- <Panel Background="{DynamicResource StatusBarControlBackground}" Cursor="{Binding UpdateAvailable, Converter={StaticResource ShowCursorConverter}}"> -->
-  <!--   <Panel.Styles> -->
-  <!--     <Styles> -->
-  <!--       <Style Selector="TextBlock"> -->
-  <!--         <Setter Property="Foreground" Value="{DynamicResource StatusBarControlForeground}"/> -->
-  <!--       </Style> -->
-  <!--     </Styles> -->
-  <!--   </Panel.Styles> -->
-  <!--   -->
-  <!-- -->
-  <!--   <DockPanel LastChildFill="True" Margin="20 0" VerticalAlignment="Center"> -->
-  <!--     <StackPanel Orientation="Horizontal" Spacing="20" DockPanel.Dock="Right" IsVisible="{Binding !CriticalUpdateAvailable}"> -->
-  <!--       <Panel IsVisible="{Binding DownloadingBlock}"> -->
-  <!--         <StackPanel Orientation="Horizontal" Spacing="4"> -->
-  <!--           <Panel Height="10" Width="10"> -->
-  <!--             <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_DownloadingBlock}" /> -->
-  <!--           </Panel> -->
-  <!--           <TextBlock Text="Downloading a block..." /> -->
-  <!--         </StackPanel> -->
-  <!--       </Panel> -->
-  <!--       <Panel IsVisible="{Binding FiltersLeft, Converter={StaticResource ShouldDisplayValueConverter}}"> -->
-  <!--         <StackPanel Orientation="Horizontal" Spacing="4"> -->
-  <!--           <Panel Height="10" Width="10"> -->
-  <!--             <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_Filter}" /> -->
-  <!--           </Panel> -->
-  <!--           <TextBlock Text="{Binding FiltersLeft, Converter={StaticResource FilterLeftStatusConverter}}" /> -->
-  <!--         </StackPanel> -->
-  <!--       </Panel> -->
-  <!--       <StackPanel IsVisible="{Binding IsExchangeRateAvailable}" Orientation="Horizontal" Spacing="0"> -->
-  <!--         <TextBlock Text="BTC/USD: " /> -->
-  <!--         <TextBlock Text="{Binding ExchangeRate}" /> -->
-  <!--       </StackPanel> -->
-  <!--     </StackPanel> -->
-  <!--    -->
-  <!--     <StackPanel Orientation="Horizontal" Spacing="4"> -->
-  <!--       <Panel IsVisible="{Binding !CriticalUpdateAvailable}"> -->
-  <!--         <Panel Height="10" Width="10" IsVisible="{Binding UpdateAvailable}"> -->
-  <!--           <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_GreenFlag}" /> -->
-  <!--         </Panel> -->
-  <!--       </Panel> -->
-  <!--       <Panel Height="10" Width="10" IsVisible="{Binding CriticalUpdateAvailable}"> -->
-  <!--         <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_YellowFlag}" /> -->
-  <!--       </Panel> -->
-  <!--       <TextBlock Text="{Binding Status}" /> -->
-  <!--     </StackPanel> -->
-  <!--   </DockPanel> -->
-  <!-- </Panel> -->
 </UserControl>
