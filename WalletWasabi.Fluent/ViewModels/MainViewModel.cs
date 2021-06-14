@@ -107,6 +107,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public void Initialize()
 		{
+			StatusBar.Initialize();
+
 			if (Services.Config.Network != Network.Main)
 			{
 				Title += $" - {Services.Config.Network}";

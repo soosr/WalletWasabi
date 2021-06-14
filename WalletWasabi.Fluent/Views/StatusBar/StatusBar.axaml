@@ -37,7 +37,7 @@
                             StatusText="{Binding BackendStatus, Converter={x:Static converters:StatusConverters.BackendStatusToString}}" />
               <c:StatusItem Icon="{StaticResource entities_regular}"
                             Title="Peers"
-                            StatusText="3 connected" />
+                            StatusText="{Binding Peers, StringFormat={}{0} connected}" />
             </StackPanel>
             <Separator Margin="-12 16"/>
 
