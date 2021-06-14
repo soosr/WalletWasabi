@@ -13,5 +13,13 @@ namespace WalletWasabi.Fluent.Converters
 				TorStatus.TurnedOff => "is turned off",
 				{ } => x.ToString()
 			});
+
+		public static readonly IValueConverter BackendStatusToString =
+			new FuncValueConverter<BackendStatus, string>(x => x switch
+			{
+				BackendStatus.Connected => "is connected",
+				BackendStatus.NotConnected => "is not connected",
+				{ } => x.ToString()
+			});
 	}
 }

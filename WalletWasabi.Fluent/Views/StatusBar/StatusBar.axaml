@@ -34,7 +34,7 @@
                             StatusText="{Binding TorStatus, Converter={x:Static converters:StatusConverters.TorStatusToString}}"/>
               <c:StatusItem Icon="{StaticResource connector_regular}"
                             Title="Backend"
-                            StatusText="is running" />
+                            StatusText="{Binding BackendStatus, Converter={x:Static converters:StatusConverters.BackendStatusToString}}" />
               <c:StatusItem Icon="{StaticResource entities_regular}"
                             Title="Peers"
                             StatusText="3 connected" />
