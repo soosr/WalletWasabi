@@ -1,4 +1,5 @@
 using System;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using NBitcoin.Protocol;
@@ -16,17 +17,16 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 
 		public StatusBarViewModel()
 		{
-
+			UseTor = Services.Config.UseTor;
+			TorStatus = UseTor ? Services.Synchronizer.TorStatus : TorStatus.TurnedOff;
 		}
 
-		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
+		private CompositeDisposable Disposables { get; } = new ();
 
-		private bool UseTor { get; set; }
+		private bool UseTor { get; }
 
 		public void Initialize()
 		{
-			UseTor = Services.Config.UseTor;
-
 			var nodes = Services.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes;
 			var synchronizer = Services.Synchronizer;
 
@@ -42,9 +42,9 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 
 			Peers = TorStatus == TorStatus.NotRunning ? 0 : nodes.Count;
 			Observable
-				.Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added)).Select(_ => true)
-					.Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed)).Select(_ => true)
-						.Merge(Services.Synchronizer.WhenAnyValue(x => x.TorStatus).Select(_ => true))))
+				.Merge(Observable.FromEventPattern(nodes, nameof(nodes.Added)).Select(_ => Unit.Default)
+				.Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed)).Select(_ => Unit.Default)
+				.Merge(Services.Synchronizer.WhenAnyValue(x => x.TorStatus).Select(_ => Unit.Default))))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => Peers = synchronizer.TorStatus == TorStatus.NotRunning ? 0 : nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
 				.DisposeWith(Disposables);
