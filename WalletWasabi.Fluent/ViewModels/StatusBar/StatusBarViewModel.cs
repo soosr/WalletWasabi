@@ -33,24 +33,24 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 			_torStatus = UseTor ? Services.Synchronizer.TorStatus : TorStatus.TurnedOff;
 
 			UpdateCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync("https://wasabiwallet.io/#download"));
-			AskMeLaterCommand = ReactiveCommand.Create(() =>
-			{
-				UpdateAvailable = false;
-				SetStatusBarState();
-			});
+			AskMeLaterCommand = ReactiveCommand.Create(() => UpdateAvailable = false);
 
 			this.WhenAnyValue(x => x.UpdateStatus)
 				.WhereNotNull()
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(status =>
 				{
 					UpdateAvailable = !status.ClientUpToDate;
 					CriticalUpdateAvailable = !status.BackendCompatible;
-
-					SetStatusBarState();
 				});
 
-			this.WhenAnyValue(x => x.TorStatus, x => x.BackendStatus, x => x.Peers, x => x.BitcoinCoreStatus)
+			this.WhenAnyValue(
+					x => x.TorStatus,
+					x => x.BackendStatus,
+					x => x.Peers,
+					x => x.BitcoinCoreStatus,
+					x => x.UpdateAvailable,
+					x => x.CriticalUpdateAvailable)
+				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetStatusBarState());
 		}
