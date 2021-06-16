@@ -40,6 +40,12 @@
 
           <!-- Update -->
           <StackPanel Spacing="10">
+            <StackPanel.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                <Binding Path="UpdateAvailable" />
+                <Binding Path="CriticalUpdateAvailable" />
+              </MultiBinding>
+            </StackPanel.IsVisible>
 
             <Separator Margin="-12 16 -12 6" />
 
@@ -54,7 +60,7 @@
               </StackPanel>
             </Button>
 
-            <Button Classes="plain" Command="{Binding AskMeLaterCommand}">
+            <Button Classes="plain" Command="{Binding AskMeLaterCommand}" IsVisible="{Binding !CriticalUpdateAvailable}">
               <StackPanel Spacing="5" Orientation="Horizontal">
                 <PathIcon Data="{StaticResource clock_regular}" Height="13" />
                 <TextBlock Text="Ask me later" />
@@ -66,30 +72,31 @@
     </FlyoutBase.AttachedFlyout>
 
     <!-- Update available -->
-    <StackPanel Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0">
-      <TextBlock Text="Update available" FontSize="14" Foreground="Gold"/>
+    <StackPanel Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0" IsVisible="{Binding UpdateAvailable}">
+      <TextBlock Text="Update available" VerticalAlignment="Center" FontSize="14" Foreground="Gold"/>
       <PathIcon Data="{StaticResource arrow_clockwise_with_elipse}"
                 Foreground="Gold"
-                Height="20" />
+                Height="30" />
     </StackPanel>
 
     <!-- Critical update available -->
-    <StackPanel Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0">
-      <TextBlock Text="Critical update available" FontSize="14" Foreground="IndianRed" />
+    <StackPanel Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0" IsVisible="{Binding CriticalUpdateAvailable}">
+      <TextBlock Text="Critical update available" VerticalAlignment="Center" FontSize="14" Foreground="IndianRed" />
       <PathIcon Data="{StaticResource critical_update}"
                 Foreground="IndianRed"
-                Height="20" />
+                Height="30" />
     </StackPanel>
 
     <!-- Ready -->
     <PathIcon Data="{StaticResource checkmark_circle_filled}"
               Foreground="{StaticResource SystemAccentColor}"
               VerticalAlignment="Center" HorizontalAlignment="Right"
-              Height="20"
-              Margin="10 0" />
+              Height="30"
+              Margin="10 0"
+              IsVisible="{Binding IsReady}"/>
 
     <!-- Loading -->
-    <c:ProgressRing IsIndeterminate="True" Margin="10 0" Width="30"/>
+    <c:ProgressRing IsIndeterminate="True" Margin="10 0" Height="30" IsVisible="{Binding IsLoading}" ClipToBounds="False" />
 
   </Panel>
 </UserControl>

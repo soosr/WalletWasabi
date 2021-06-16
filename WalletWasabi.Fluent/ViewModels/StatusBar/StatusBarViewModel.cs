@@ -10,6 +10,7 @@ using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusBar
 {
@@ -19,15 +20,52 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 		[AutoNotify] private BackendStatus _backendStatus;
 		[AutoNotify] private int _peers;
 		[AutoNotify] private RpcStatus? _bitcoinCoreStatus;
+		[AutoNotify] private UpdateStatus? _updateStatus;
+		[AutoNotify] private bool _updateAvailable;
+		[AutoNotify] private bool _criticalUpdateAvailable;
+		[AutoNotify] private bool _isReady;
+		[AutoNotify] private bool _isLoading;
 
 		public StatusBarViewModel()
 		{
+			IsLoading = true;
 			UseTor = Services.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
 			UseBitcoinCore = Services.Config.StartLocalBitcoinCoreOnStartup;
 			_torStatus = UseTor ? Services.Synchronizer.TorStatus : TorStatus.TurnedOff;
 
 			UpdateCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync("https://wasabiwallet.io/#download"));
-			AskMeLaterCommand = ReactiveCommand.Create(() => { });
+			AskMeLaterCommand = ReactiveCommand.Create(() => UpdateAvailable = false);
+
+			SetupStateHandling();
+
+			this.WhenAnyValue(x => x.UpdateStatus)
+				.WhereNotNull()
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(status =>
+				{
+					UpdateAvailable = !status.ClientUpToDate;
+					CriticalUpdateAvailable = !status.BackendCompatible;
+				});
+
+			this.WhenAnyValue(x => x.TorStatus, x => x.BackendStatus, x => x.Peers, x => x.BitcoinCoreStatus)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(tup =>
+				{
+					var (torStatus, backendStatus, peers, coreStatus) = tup;
+
+					// The source of the p2p connection comes from if we use Core for it or the network.
+					var p2pConnected = UseBitcoinCore ? coreStatus?.Success is true : peers >= 1;
+					var torConnected = !UseTor || torStatus == TorStatus.Running;
+
+					if (torConnected && backendStatus == BackendStatus.Connected && p2pConnected)
+					{
+						IsReady = true;
+					}
+					else
+					{
+						IsLoading = true;
+					}
+				});
 		}
 
 		public ICommand UpdateCommand { get; }
@@ -42,13 +80,56 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 
 		public string BitcoinCoreName => Constants.BuiltinBitcoinNodeName;
 
+		private void SetupStateHandling()
+		{
+			// Only one state can be active at a time.
+
+			this.WhenAnyValue(x => x.IsReady)
+				.Where(x => x)
+				.Subscribe(_ =>
+				{
+					CriticalUpdateAvailable = false;
+					UpdateAvailable = false;
+					IsLoading = false;
+				});
+
+			this.WhenAnyValue(x => x.IsLoading)
+				.Where(x => x)
+				.Subscribe(_ =>
+				{
+					UpdateAvailable = false;
+					CriticalUpdateAvailable = false;
+					IsReady = false;
+				});
+
+			this.WhenAnyValue(x => x.CriticalUpdateAvailable)
+				.Where(x => x)
+				.Subscribe(_ =>
+				{
+					UpdateAvailable = false;
+					IsReady = false;
+					IsLoading = false;
+				});
+
+			this.WhenAnyValue(x => x.UpdateAvailable)
+				.Where(x => x)
+				.Subscribe(_ =>
+				{
+					CriticalUpdateAvailable = false;
+					IsReady = false;
+					IsLoading = false;
+				});
+		}
+
 		public void Initialize()
 		{
 			var nodes = Services.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes;
 			var synchronizer = Services.Synchronizer;
 			var rpcMonitor = Services.HostedServices.GetOrDefault<RpcMonitor>();
+			var updateChecker = Services.HostedServices.Get<UpdateChecker>();
 
 			BitcoinCoreStatus = rpcMonitor?.RpcStatus ?? RpcStatus.Unresponsive;
+			UpdateStatus = updateChecker.UpdateStatus;
 
 			synchronizer.WhenAnyValue(x => x.TorStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -76,6 +157,11 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 					.Subscribe(e => BitcoinCoreStatus = e.EventArgs)
 					.DisposeWith(Disposables);
 			}
+
+			Observable.FromEventPattern<UpdateStatus>(updateChecker, nameof(updateChecker.UpdateStatusChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(e => UpdateStatus = e.EventArgs)
+				.DisposeWith(Disposables);
 		}
 	}
 }
