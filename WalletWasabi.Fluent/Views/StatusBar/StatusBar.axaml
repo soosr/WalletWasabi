@@ -6,6 +6,7 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.ViewModels.StatusBar"
              xmlns:converters="using:WalletWasabi.Fluent.Converters"
+             xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
              mc:Ignorable="d" d:DesignWidth="671" d:DesignHeight="32"
              x:DataType="statusBar:StatusBarViewModel"
              x:CompileBindings="True"
@@ -72,7 +73,8 @@
     </FlyoutBase.AttachedFlyout>
 
     <!-- Update available -->
-    <StackPanel Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0" IsVisible="{Binding UpdateAvailable}">
+    <StackPanel Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0"
+                IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.UpdateAvailable}}"                >
       <TextBlock Text="Update available" VerticalAlignment="Center" FontSize="14" Foreground="Gold"/>
       <PathIcon Data="{StaticResource arrow_clockwise_with_elipse}"
                 Foreground="Gold"
@@ -80,7 +82,8 @@
     </StackPanel>
 
     <!-- Critical update available -->
-    <StackPanel Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0" IsVisible="{Binding CriticalUpdateAvailable}">
+    <StackPanel Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0"
+                IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.CriticalUpdateAvailable}}"                >
       <TextBlock Text="Critical update available" VerticalAlignment="Center" FontSize="14" Foreground="IndianRed" />
       <PathIcon Data="{StaticResource critical_update}"
                 Foreground="IndianRed"
@@ -93,10 +96,12 @@
               VerticalAlignment="Center" HorizontalAlignment="Right"
               Height="30"
               Margin="10 0"
-              IsVisible="{Binding IsReady}"/>
+              IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Ready}}" />
 
     <!-- Loading -->
-    <c:ProgressRing IsIndeterminate="True" Margin="10 0" Height="30" IsVisible="{Binding IsLoading}" ClipToBounds="False" />
+    <c:ProgressRing IsIndeterminate="True" Margin="10 0" Height="30"
+                    IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Loading}}"
+                    ClipToBounds="False" />
 
   </Panel>
 </UserControl>

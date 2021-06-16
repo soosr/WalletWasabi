@@ -8,6 +8,7 @@ using NBitcoin.Protocol;
 using ReactiveUI;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -23,20 +24,16 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 		[AutoNotify] private UpdateStatus? _updateStatus;
 		[AutoNotify] private bool _updateAvailable;
 		[AutoNotify] private bool _criticalUpdateAvailable;
-		[AutoNotify] private bool _isReady;
-		[AutoNotify] private bool _isLoading;
+		[AutoNotify] private StatusBarState _currentState;
 
 		public StatusBarViewModel()
 		{
-			IsLoading = true;
 			UseTor = Services.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
 			UseBitcoinCore = Services.Config.StartLocalBitcoinCoreOnStartup;
 			_torStatus = UseTor ? Services.Synchronizer.TorStatus : TorStatus.TurnedOff;
 
 			UpdateCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync("https://wasabiwallet.io/#download"));
 			AskMeLaterCommand = ReactiveCommand.Create(() => UpdateAvailable = false);
-
-			SetupStateHandling();
 
 			this.WhenAnyValue(x => x.UpdateStatus)
 				.WhereNotNull()
@@ -45,6 +42,15 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 				{
 					UpdateAvailable = !status.ClientUpToDate;
 					CriticalUpdateAvailable = !status.BackendCompatible;
+
+					if (CriticalUpdateAvailable)
+					{
+						CurrentState = StatusBarState.CriticalUpdateAvailable;
+					}
+					else if (UpdateAvailable)
+					{
+						CurrentState = StatusBarState.UpdateAvailable;
+					}
 				});
 
 			this.WhenAnyValue(x => x.TorStatus, x => x.BackendStatus, x => x.Peers, x => x.BitcoinCoreStatus)
@@ -59,11 +65,11 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 
 					if (torConnected && backendStatus == BackendStatus.Connected && p2pConnected)
 					{
-						IsReady = true;
+						CurrentState = StatusBarState.Ready;
 					}
 					else
 					{
-						IsLoading = true;
+						CurrentState = StatusBarState.Loading;
 					}
 				});
 		}
@@ -79,47 +85,6 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 		public bool UseBitcoinCore { get; }
 
 		public string BitcoinCoreName => Constants.BuiltinBitcoinNodeName;
-
-		private void SetupStateHandling()
-		{
-			// Only one state can be active at a time.
-
-			this.WhenAnyValue(x => x.IsReady)
-				.Where(x => x)
-				.Subscribe(_ =>
-				{
-					CriticalUpdateAvailable = false;
-					UpdateAvailable = false;
-					IsLoading = false;
-				});
-
-			this.WhenAnyValue(x => x.IsLoading)
-				.Where(x => x)
-				.Subscribe(_ =>
-				{
-					UpdateAvailable = false;
-					CriticalUpdateAvailable = false;
-					IsReady = false;
-				});
-
-			this.WhenAnyValue(x => x.CriticalUpdateAvailable)
-				.Where(x => x)
-				.Subscribe(_ =>
-				{
-					UpdateAvailable = false;
-					IsReady = false;
-					IsLoading = false;
-				});
-
-			this.WhenAnyValue(x => x.UpdateAvailable)
-				.Where(x => x)
-				.Subscribe(_ =>
-				{
-					CriticalUpdateAvailable = false;
-					IsReady = false;
-					IsLoading = false;
-				});
-		}
 
 		public void Initialize()
 		{
