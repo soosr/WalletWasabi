@@ -25,7 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 		[AutoNotify] private int _peers;
 		[AutoNotify] private bool _updateAvailable;
 		[AutoNotify] private bool _criticalUpdateAvailable;
-		[AutoNotify] private string _versionText;
+		[AutoNotify] private string? _versionText;
 
 		public StatusBarViewModel()
 		{
@@ -127,20 +127,19 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async e =>
 				{
-					var cancelToken = new CancellationTokenSource(TimeSpan.FromMinutes(1));
 					var updateStatus = e.EventArgs;
+					var cancelToken = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+					var (clientVersion, backendMajorVersion, _) = await updateChecker.WasabiClient.GetVersionsAsync(cancelToken.Token);
 
 					UpdateAvailable = !updateStatus.ClientUpToDate;
 					CriticalUpdateAvailable = !updateStatus.BackendCompatible;
 
 					if (CriticalUpdateAvailable)
 					{
-						var (_, backendMajorVersion, _) = await updateChecker.WasabiClient.GetVersionsAsync(cancelToken.Token);
 						VersionText = $"Backend version {backendMajorVersion} is now available";
 					}
 					else if (UpdateAvailable)
 					{
-						var (clientVersion, _, _) = await updateChecker.WasabiClient.GetVersionsAsync(cancelToken.Token);
 						VersionText = $"Version {clientVersion} is now available";
 					}
 				})
