@@ -3,6 +3,7 @@ using System.IO;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Windows.Input;
 using NBitcoin.Protocol;
 using ReactiveUI;
@@ -24,6 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 		[AutoNotify] private int _peers;
 		[AutoNotify] private bool _updateAvailable;
 		[AutoNotify] private bool _criticalUpdateAvailable;
+		[AutoNotify] private string _versionText;
 
 		public StatusBarViewModel()
 		{
@@ -123,12 +125,24 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 
 			Observable.FromEventPattern<UpdateStatus>(updateChecker, nameof(updateChecker.UpdateStatusChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e =>
+				.Subscribe(async e =>
 				{
+					var cancelToken = new CancellationTokenSource(TimeSpan.FromMinutes(1));
 					var updateStatus = e.EventArgs;
 
 					UpdateAvailable = !updateStatus.ClientUpToDate;
 					CriticalUpdateAvailable = !updateStatus.BackendCompatible;
+
+					if (CriticalUpdateAvailable)
+					{
+						var (_, backendMajorVersion, _) = await updateChecker.WasabiClient.GetVersionsAsync(cancelToken.Token);
+						VersionText = $"Backend version {backendMajorVersion} is now available";
+					}
+					else if (UpdateAvailable)
+					{
+						var (clientVersion, _, _) = await updateChecker.WasabiClient.GetVersionsAsync(cancelToken.Token);
+						VersionText = $"Version {clientVersion} is now available";
+					}
 				})
 				.DisposeWith(Disposables);
 		}

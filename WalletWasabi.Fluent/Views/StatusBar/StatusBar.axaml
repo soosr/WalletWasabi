@@ -52,7 +52,7 @@
 
             <c:StatusItem Icon="{StaticResource arrow_clockwise_regular}"
                           Title="Update available"
-                          StatusText="Version 4.20 is now available" />
+                          StatusText="{Binding VersionText}" />
             <Button Classes="plain" Command="{Binding UpdateCommand}">
               <StackPanel Spacing="5" Orientation="Horizontal">
                 <PathIcon Data="{StaticResource arrow_download_regular}" Height="13"
