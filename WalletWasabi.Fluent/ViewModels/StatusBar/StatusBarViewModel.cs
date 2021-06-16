@@ -8,6 +8,7 @@ using NBitcoin.Protocol;
 using ReactiveUI;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusBar
@@ -38,6 +39,8 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 		private bool UseTor { get; }
 
 		public bool UseBitcoinCore { get; }
+
+		public string BitcoinCoreName => Constants.BuiltinBitcoinNodeName;
 
 		public void Initialize()
 		{

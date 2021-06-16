@@ -10,66 +10,86 @@
              x:DataType="statusBar:StatusBarViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.StatusBar.StatusBar">
-  <Panel Background="{DynamicResource RegionColor}">
+  <Panel HorizontalAlignment="Right" VerticalAlignment="Stretch">
+    <Interaction.Behaviors>
+      <behaviors:ShowFlyoutOnPointerOverBehavior />
+    </Interaction.Behaviors>
+    <FlyoutBase.AttachedFlyout>
+      <Flyout Placement="Top" ShowMode="TransientWithDismissOnPointerMoveAway">
+        <StackPanel TextBlock.Foreground="{DynamicResource TextControlForeground}"
+                    TextBlock.FontSize="14"
+                    MaxWidth="160"
+                    ClipToBounds="False">
+
+          <!-- Status -->
+          <StackPanel Spacing="16">
+            <c:StatusItem Icon="{StaticResource tor_icon}"
+                          Title="Tor"
+                          StatusText="{Binding TorStatus, Converter={x:Static converters:StatusConverters.TorStatusToString}}" />
+            <c:StatusItem Icon="{StaticResource connector_regular}"
+                          Title="Backend"
+                          StatusText="{Binding BackendStatus, Converter={x:Static converters:StatusConverters.BackendStatusToString}}" />
+            <c:StatusItem Icon="{StaticResource entities_regular}"
+                          Title="Peers"
+                          StatusText="{Binding Peers, StringFormat={}{0} connected}" />
+            <c:StatusItem Icon="{StaticResource btc_logo}"
+                          Title="{Binding BitcoinCoreName}"
+                          StatusText="{Binding BitcoinCoreStatus, Converter={x:Static converters:StatusConverters.RpcStatusStringConverter}}"
+                          IsVisible="{Binding UseBitcoinCore}" />
+          </StackPanel>
+
+          <!-- Update -->
+          <StackPanel Spacing="10">
+
+            <Separator Margin="-12 16 -12 6" />
+
+            <c:StatusItem Icon="{StaticResource arrow_clockwise_regular}"
+                          Title="Update available"
+                          StatusText="Version 4.20 is now available" />
+            <Button Classes="plain" Command="{Binding UpdateCommand}">
+              <StackPanel Spacing="5" Orientation="Horizontal">
+                <PathIcon Data="{StaticResource arrow_download_regular}" Height="13"
+                          Foreground="{StaticResource SystemAccentColor}" />
+                <TextBlock Text="Update now" Foreground="{StaticResource SystemAccentColor}" />
+              </StackPanel>
+            </Button>
+
+            <Button Classes="plain" Command="{Binding AskMeLaterCommand}">
+              <StackPanel Spacing="5" Orientation="Horizontal">
+                <PathIcon Data="{StaticResource clock_regular}" Height="13" />
+                <TextBlock Text="Ask me later" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </StackPanel>
+      </Flyout>
+    </FlyoutBase.AttachedFlyout>
+
+    <!-- Update available -->
+    <StackPanel Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0">
+      <TextBlock Text="Update available" FontSize="14" Foreground="Gold"/>
+      <PathIcon Data="{StaticResource arrow_clockwise_with_elipse}"
+                Foreground="Gold"
+                Height="20" />
+    </StackPanel>
+
+    <!-- Critical update available -->
+    <StackPanel Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0">
+      <TextBlock Text="Critical update available" FontSize="14" Foreground="IndianRed" />
+      <PathIcon Data="{StaticResource critical_update}"
+                Foreground="IndianRed"
+                Height="20" />
+    </StackPanel>
+
+    <!-- Ready -->
     <PathIcon Data="{StaticResource checkmark_circle_filled}"
               Foreground="{StaticResource SystemAccentColor}"
               VerticalAlignment="Center" HorizontalAlignment="Right"
               Height="20"
-              Margin="10 0"
-              Name="AttachedFlyoutPanel">
-      <Interaction.Behaviors>
-        <behaviors:ShowFlyoutOnPointerOverBehavior />
-      </Interaction.Behaviors>
-      <FlyoutBase.AttachedFlyout>
-        <Flyout Placement="Top" ShowMode="TransientWithDismissOnPointerMoveAway">
-          <StackPanel TextBlock.Foreground="{DynamicResource TextControlForeground}"
-                 TextBlock.FontSize="14"
-                 MaxWidth="160"
-                 ClipToBounds="False">
+              Margin="10 0" />
 
-            <!-- Status -->
-            <StackPanel Spacing="16">
-              <c:StatusItem Icon="{StaticResource tor_icon}"
-                            Title="Tor"
-                            StatusText="{Binding TorStatus, Converter={x:Static converters:StatusConverters.TorStatusToString}}"/>
-              <c:StatusItem Icon="{StaticResource connector_regular}"
-                            Title="Backend"
-                            StatusText="{Binding BackendStatus, Converter={x:Static converters:StatusConverters.BackendStatusToString}}" />
-              <c:StatusItem Icon="{StaticResource entities_regular}"
-                            Title="Peers"
-                            StatusText="{Binding Peers, StringFormat={}{0} connected}" />
-              <c:StatusItem Icon="{StaticResource btc_logo}"
-                            Title="Bitcoin Core"
-                            StatusText="{Binding BitcoinCoreStatus, Converter={x:Static converters:StatusConverters.RpcStatusStringConverter}}"
-                            IsVisible="{Binding UseBitcoinCore}"/>
-            </StackPanel>
+    <!-- Loading -->
+    <c:ProgressRing IsIndeterminate="True" Margin="10 0" Width="30"/>
 
-            <!-- Update -->
-            <StackPanel Spacing="10">
-
-              <Separator Margin="-12 16 -12 6"/>
-
-              <c:StatusItem Icon="{StaticResource arrow_clockwise_regular}"
-                            Title="Update available"
-                            StatusText="Version 4.20 is now available" />
-              <Button Classes="plain" Command="{Binding UpdateCommand}">
-                <StackPanel Spacing="5" Orientation="Horizontal">
-                  <PathIcon Data="{StaticResource arrow_download_regular}" Height="13"
-                            Foreground="{StaticResource SystemAccentColor}" />
-                  <TextBlock Text="Update now" Foreground="{StaticResource SystemAccentColor}" />
-                </StackPanel>
-              </Button>
-
-              <Button Classes="plain" Command="{Binding AskMeLaterCommand}">
-                <StackPanel Spacing="5" Orientation="Horizontal">
-                  <PathIcon Data="{StaticResource clock_regular}" Height="13" />
-                  <TextBlock Text="Ask me later" />
-                </StackPanel>
-              </Button>
-            </StackPanel>
-          </StackPanel>
-        </Flyout>
-      </FlyoutBase.AttachedFlyout>
-    </PathIcon>
   </Panel>
 </UserControl>

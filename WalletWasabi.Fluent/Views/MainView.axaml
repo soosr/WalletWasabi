@@ -39,7 +39,9 @@
       </SplitView.Pane>
       <Panel>
         <DockPanel>
-          <statusBar:StatusBar DockPanel.Dock="Bottom" Classes="h8" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" />
+          <Panel Background="{DynamicResource RegionColor}" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Height="32">
+            <statusBar:StatusBar  DataContext="{Binding StatusBar}"  />
+          </Panel>
           <Panel>
             <Panel.Styles>
               <Style Selector="ContentControl c|ContentArea /template/ Panel#PART_ButtonArea">
