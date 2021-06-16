@@ -17,31 +17,22 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 {
 	public partial class StatusBarViewModel
 	{
+		[AutoNotify] private StatusBarState _currentState;
 		[AutoNotify] private TorStatus _torStatus;
 		[AutoNotify] private BackendStatus _backendStatus;
-		[AutoNotify] private int _peers;
 		[AutoNotify] private RpcStatus? _bitcoinCoreStatus;
-		[AutoNotify] private UpdateStatus? _updateStatus;
+		[AutoNotify] private int _peers;
 		[AutoNotify] private bool _updateAvailable;
 		[AutoNotify] private bool _criticalUpdateAvailable;
-		[AutoNotify] private StatusBarState _currentState;
 
 		public StatusBarViewModel()
 		{
 			UseTor = Services.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
+			TorStatus = UseTor ? Services.Synchronizer.TorStatus : TorStatus.TurnedOff;
 			UseBitcoinCore = Services.Config.StartLocalBitcoinCoreOnStartup;
-			_torStatus = UseTor ? Services.Synchronizer.TorStatus : TorStatus.TurnedOff;
 
 			UpdateCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync("https://wasabiwallet.io/#download"));
 			AskMeLaterCommand = ReactiveCommand.Create(() => UpdateAvailable = false);
-
-			this.WhenAnyValue(x => x.UpdateStatus)
-				.WhereNotNull()
-				.Subscribe(status =>
-				{
-					UpdateAvailable = !status.ClientUpToDate;
-					CriticalUpdateAvailable = !status.BackendCompatible;
-				});
 
 			this.WhenAnyValue(
 					x => x.TorStatus,
@@ -102,7 +93,6 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 			var updateChecker = Services.HostedServices.Get<UpdateChecker>();
 
 			BitcoinCoreStatus = rpcMonitor?.RpcStatus ?? RpcStatus.Unresponsive;
-			UpdateStatus = updateChecker.UpdateStatus;
 
 			synchronizer.WhenAnyValue(x => x.TorStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -133,7 +123,13 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 
 			Observable.FromEventPattern<UpdateStatus>(updateChecker, nameof(updateChecker.UpdateStatusChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e => UpdateStatus = e.EventArgs)
+				.Subscribe(e =>
+				{
+					var updateStatus = e.EventArgs;
+
+					UpdateAvailable = !updateStatus.ClientUpToDate;
+					CriticalUpdateAvailable = !updateStatus.BackendCompatible;
+				})
 				.DisposeWith(Disposables);
 		}
 	}
