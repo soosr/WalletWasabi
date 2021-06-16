@@ -33,7 +33,11 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 			_torStatus = UseTor ? Services.Synchronizer.TorStatus : TorStatus.TurnedOff;
 
 			UpdateCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync("https://wasabiwallet.io/#download"));
-			AskMeLaterCommand = ReactiveCommand.Create(() => UpdateAvailable = false);
+			AskMeLaterCommand = ReactiveCommand.Create(() =>
+			{
+				UpdateAvailable = false;
+				SetStatusBarState();
+			});
 
 			this.WhenAnyValue(x => x.UpdateStatus)
 				.WhereNotNull()
@@ -43,35 +47,12 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 					UpdateAvailable = !status.ClientUpToDate;
 					CriticalUpdateAvailable = !status.BackendCompatible;
 
-					if (CriticalUpdateAvailable)
-					{
-						CurrentState = StatusBarState.CriticalUpdateAvailable;
-					}
-					else if (UpdateAvailable)
-					{
-						CurrentState = StatusBarState.UpdateAvailable;
-					}
+					SetStatusBarState();
 				});
 
 			this.WhenAnyValue(x => x.TorStatus, x => x.BackendStatus, x => x.Peers, x => x.BitcoinCoreStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(tup =>
-				{
-					var (torStatus, backendStatus, peers, coreStatus) = tup;
-
-					// The source of the p2p connection comes from if we use Core for it or the network.
-					var p2pConnected = UseBitcoinCore ? coreStatus?.Success is true : peers >= 1;
-					var torConnected = !UseTor || torStatus == TorStatus.Running;
-
-					if (torConnected && backendStatus == BackendStatus.Connected && p2pConnected)
-					{
-						CurrentState = StatusBarState.Ready;
-					}
-					else
-					{
-						CurrentState = StatusBarState.Loading;
-					}
-				});
+				.Subscribe(_ => SetStatusBarState());
 		}
 
 		public ICommand UpdateCommand { get; }
@@ -85,6 +66,33 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 		public bool UseBitcoinCore { get; }
 
 		public string BitcoinCoreName => Constants.BuiltinBitcoinNodeName;
+
+		private void SetStatusBarState()
+		{
+			if (CriticalUpdateAvailable)
+			{
+				CurrentState = StatusBarState.CriticalUpdateAvailable;
+				return;
+			}
+
+			if (UpdateAvailable)
+			{
+				CurrentState = StatusBarState.UpdateAvailable;
+				return;
+			}
+
+			// The source of the p2p connection comes from if we use Core for it or the network.
+			var p2pConnected = UseBitcoinCore ? BitcoinCoreStatus?.Success is true : Peers >= 1;
+			var torConnected = !UseTor || TorStatus == TorStatus.Running;
+
+			if (torConnected && BackendStatus == BackendStatus.Connected && p2pConnected)
+			{
+				CurrentState = StatusBarState.Ready;
+				return;
+			}
+
+			CurrentState = StatusBarState.Loading;
+		}
 
 		public void Initialize()
 		{
