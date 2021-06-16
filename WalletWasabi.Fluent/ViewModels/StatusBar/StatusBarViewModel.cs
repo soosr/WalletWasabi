@@ -15,7 +15,7 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusBar
 {
-	public partial class StatusBarViewModel
+	public partial class StatusBarViewModel : IDisposable
 	{
 		[AutoNotify] private StatusBarState _currentState;
 		[AutoNotify] private TorStatus _torStatus;
@@ -131,6 +131,11 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 					CriticalUpdateAvailable = !updateStatus.BackendCompatible;
 				})
 				.DisposeWith(Disposables);
+		}
+
+		public void Dispose()
+		{
+			Disposables.Dispose();
 		}
 	}
 }
