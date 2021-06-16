@@ -1,4 +1,5 @@
 using Avalonia.Data.Converters;
+using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.Converters
@@ -21,5 +22,8 @@ namespace WalletWasabi.Fluent.Converters
 				BackendStatus.NotConnected => "is not connected",
 				{ } => x.ToString()
 			});
+
+		public static readonly IValueConverter RpcStatusStringConverter =
+			new FuncValueConverter<RpcStatus?, string>(status => status is null ? RpcStatus.Unresponsive.ToString() : status.ToString());
 	}
 }
