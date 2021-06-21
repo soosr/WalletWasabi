@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -15,21 +16,47 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		[AutoNotify] private double _percent;
 		[AutoNotify] private string? _statusText;
+		[AutoNotify] private bool _isBackendConnected;
 
 		private uint? _startingFilterIndex;
 		private Stopwatch? _stopwatch;
+
+		private bool _isLoading;
 
 		public LoadingControlViewModel(Wallet wallet)
 		{
 			_wallet = wallet;
 			_statusText = "";
 			_percent = 0;
+			_isBackendConnected = Services.Synchronizer.BackendStatus == BackendStatus.Connected;
 		}
 
 		protected override void OnActivated(CompositeDisposable disposables)
 		{
 			base.OnActivated(disposables);
 
+			Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(status => IsBackendConnected = status == BackendStatus.Connected)
+				.DisposeWith(disposables);
+
+			this.WhenAnyValue(x => x.IsBackendConnected)
+				.Subscribe(connectionStatus =>
+				{
+					if (connectionStatus && !_isLoading)
+					{
+						_isLoading = true;
+
+						StartFilterProcessing(disposables);
+					}
+				})
+				.DisposeWith(disposables);
+
+			this.RaisePropertyChanged(nameof(IsBackendConnected));
+		}
+
+		private void StartFilterProcessing(CompositeDisposable disposables)
+		{
 			_stopwatch ??= Stopwatch.StartNew();
 
 			Observable.Interval(TimeSpan.FromSeconds(1))
