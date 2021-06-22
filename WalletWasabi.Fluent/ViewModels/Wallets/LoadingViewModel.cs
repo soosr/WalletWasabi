@@ -11,7 +11,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
-	public partial class LoadingControlViewModel : ActivatableViewModel
+	public partial class LoadingViewModel : ActivatableViewModel
 	{
 		private readonly Wallet _wallet;
 
@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		private bool _isLoading;
 
-		public LoadingControlViewModel(Wallet wallet)
+		public LoadingViewModel(Wallet wallet)
 		{
 			_wallet = wallet;
 			_statusText = "";
