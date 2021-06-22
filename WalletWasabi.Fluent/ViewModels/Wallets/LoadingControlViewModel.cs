@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
@@ -46,13 +47,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					if (connectionStatus && !_isLoading)
 					{
 						_isLoading = true;
-
+						RxApp.MainThreadScheduler.Schedule(async () => await UiServices.WalletManager.LoadWalletAsync(_wallet));
 						StartFilterProcessing(disposables);
 					}
 				})
 				.DisposeWith(disposables);
 
 			this.RaisePropertyChanged(nameof(IsBackendConnected));
+
+			if (_isLoading)
+			{
+				StartFilterProcessing(disposables);
+			}
 		}
 
 		private void StartFilterProcessing(CompositeDisposable disposables)
