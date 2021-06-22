@@ -36,6 +36,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		{
 			base.OnActivated(disposables);
 
+			if (_isLoading)
+			{
+				ShowFilterProcessingStatus(disposables);
+			}
+
 			Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(status => IsBackendConnected = status == BackendStatus.Connected)
@@ -54,11 +59,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				.DisposeWith(disposables);
 
 			this.RaisePropertyChanged(nameof(IsBackendConnected));
-
-			if (_isLoading)
-			{
-				ShowFilterProcessingStatus(disposables);
-			}
 		}
 
 		private void ShowFilterProcessingStatus(CompositeDisposable disposables)
