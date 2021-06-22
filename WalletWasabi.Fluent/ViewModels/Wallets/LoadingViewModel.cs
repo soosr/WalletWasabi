@@ -48,7 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					{
 						_isLoading = true;
 						RxApp.MainThreadScheduler.Schedule(async () => await UiServices.WalletManager.LoadWalletAsync(_wallet));
-						StartFilterProcessing(disposables);
+						ShowFilterProcessingStatus(disposables);
 					}
 				})
 				.DisposeWith(disposables);
@@ -57,11 +57,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			if (_isLoading)
 			{
-				StartFilterProcessing(disposables);
+				ShowFilterProcessingStatus(disposables);
 			}
 		}
 
-		private void StartFilterProcessing(CompositeDisposable disposables)
+		private void ShowFilterProcessingStatus(CompositeDisposable disposables)
 		{
 			_stopwatch ??= Stopwatch.StartNew();
 
