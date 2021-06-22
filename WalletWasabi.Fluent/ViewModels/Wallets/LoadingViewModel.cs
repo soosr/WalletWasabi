@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Fluent.Helpers;
@@ -21,8 +23,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		private uint? _startingFilterIndex;
 		private Stopwatch? _stopwatch;
-
 		private bool _isLoading;
+		private CancellationTokenSource? _backendTimeoutCancelToken;
 
 		public LoadingViewModel(Wallet wallet)
 		{
@@ -36,29 +38,46 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		{
 			base.OnActivated(disposables);
 
-			if (_isLoading)
-			{
-				ShowFilterProcessingStatus(disposables);
-			}
-
 			Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(status => IsBackendConnected = status == BackendStatus.Connected)
 				.DisposeWith(disposables);
 
-			this.WhenAnyValue(x => x.IsBackendConnected)
-				.Subscribe(connectionStatus =>
+			this.RaisePropertyChanged(nameof(IsBackendConnected));
+
+			_backendTimeoutCancelToken ??= new CancellationTokenSource(TimeSpan.FromMinutes(1));
+			var deactivateCancelToken = new CancellationTokenSource();
+			var loadingCancelToken = CancellationTokenSource.CreateLinkedTokenSource(_backendTimeoutCancelToken.Token, deactivateCancelToken.Token);
+
+			disposables.Add(Disposable.Create(() => deactivateCancelToken.Cancel()));
+
+			if (_isLoading)
+			{
+				ShowFilterProcessingStatus(disposables);
+			}
+			else
+			{
+				RxApp.MainThreadScheduler.Schedule(async () =>
 				{
-					if (connectionStatus && !_isLoading)
+					try
 					{
+						while (!IsBackendConnected)
+						{
+							await Task.Delay(100, loadingCancelToken.Token);
+						}
+
 						_isLoading = true;
+
+						// TODO: await Filter sync goes here
 						RxApp.MainThreadScheduler.Schedule(async () => await UiServices.WalletManager.LoadWalletAsync(_wallet));
 						ShowFilterProcessingStatus(disposables);
 					}
-				})
-				.DisposeWith(disposables);
-
-			this.RaisePropertyChanged(nameof(IsBackendConnected));
+					catch (Exception)
+					{
+						// ignored
+					}
+				});
+			}
 		}
 
 		private void ShowFilterProcessingStatus(CompositeDisposable disposables)
