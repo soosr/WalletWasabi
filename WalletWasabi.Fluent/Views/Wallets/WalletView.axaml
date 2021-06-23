@@ -58,6 +58,16 @@
                                           Height="{Binding HeightSource, Mode=TwoWay}"
                                           x:CompileBindings="False"/>
       </i:Interaction.Behaviors>
+
+      <!-- Limited mode message -->
+      <c:InfoMessage Content="Wasabi was unable to synchronize correctly, thus the balance can be incorrect."
+                     Foreground="{StaticResource WarningMessageForeground}"
+                     Margin="0 20 0 0"
+                     HorizontalAlignment="Center"
+                     Opacity="{Binding LimitedModeEnabled, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}"
+                     DockPanel.Dock="Bottom" />
+
+      <!-- Tiles -->
       <ScrollViewer Name="ScrollViewer"
                     Classes.smallLayout="{Binding IsSmallLayout}"
                     Classes.normalLayout="{Binding IsNormalLayout}"
@@ -134,6 +144,8 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
       </ScrollViewer>
+
+      <!-- History -->
       <history:HistoryTable Name="HistoryTable" DataContext="{Binding History}"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
     </DockPanel>

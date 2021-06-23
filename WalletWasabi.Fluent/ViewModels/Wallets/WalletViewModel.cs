@@ -155,7 +155,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				Navigate(NavigationTarget.DialogScreen)
 					.To(new SendViewModel(wallet));
-			}, this.WhenAnyValue(x => x.LimitedModeEnabled));
+			}, this.WhenAnyValue(x => x.LimitedModeEnabled).Select(x => !x));
 
 			ReceiveCommand = ReactiveCommand.Create(() =>
 			{
@@ -184,7 +184,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(wallet));
 			});
 
-			LimitedModeEnabled = Services.Synchronizer.BackendStatus == BackendStatus.Connected;
+			LimitedModeEnabled = Services.Synchronizer.BackendStatus == BackendStatus.NotConnected;
 		}
 
 		public ICommand SendCommand { get; }
@@ -278,7 +278,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(status => LimitedModeEnabled = status == BackendStatus.Connected)
+				.Subscribe(status => LimitedModeEnabled = status == BackendStatus.NotConnected)
 				.DisposeWith(disposables);
 		}
 
