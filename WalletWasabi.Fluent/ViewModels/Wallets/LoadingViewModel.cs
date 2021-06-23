@@ -4,7 +4,6 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Fluent.Helpers;
@@ -24,7 +23,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		private uint? _startingFilterIndex;
 		private Stopwatch? _stopwatch;
 		private bool _isLoading;
-		private CancellationTokenSource? _backendTimeoutCancelToken;
 
 		public LoadingViewModel(Wallet wallet)
 		{
@@ -38,46 +36,52 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		{
 			base.OnActivated(disposables);
 
-			Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(status => IsBackendConnected = status == BackendStatus.Connected)
-				.DisposeWith(disposables);
-
-			this.RaisePropertyChanged(nameof(IsBackendConnected));
-
-			_backendTimeoutCancelToken ??= new CancellationTokenSource(TimeSpan.FromMinutes(1));
 			var deactivateCancelToken = new CancellationTokenSource();
-			var loadingCancelToken = CancellationTokenSource.CreateLinkedTokenSource(_backendTimeoutCancelToken.Token, deactivateCancelToken.Token);
-
 			disposables.Add(Disposable.Create(() => deactivateCancelToken.Cancel()));
 
 			if (_isLoading)
 			{
+				// TODO: Refactor status
 				ShowFilterProcessingStatus(disposables);
 			}
 			else
 			{
-				RxApp.MainThreadScheduler.Schedule(async () =>
-				{
-					try
-					{
-						while (!IsBackendConnected)
-						{
-							await Task.Delay(100, loadingCancelToken.Token);
-						}
+				Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(status => IsBackendConnected = status == BackendStatus.Connected)
+					.DisposeWith(disposables);
 
-						_isLoading = true;
+				this.RaisePropertyChanged(nameof(IsBackendConnected));
 
-						// TODO: await Filter sync goes here
-						RxApp.MainThreadScheduler.Schedule(async () => await UiServices.WalletManager.LoadWalletAsync(_wallet));
-						ShowFilterProcessingStatus(disposables);
-					}
-					catch (Exception)
-					{
-						// ignored
-					}
-				});
+				Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
+					.Select(x => x.EventArgs)
+					.Where(x => x)
+					.Subscribe(_ => LoadWallet(disposables, syncFilters: false))
+					.DisposeWith(disposables);
+
+				this.WhenAnyValue(x => x.IsBackendConnected)
+					.Where(x => x)
+					.Subscribe(_ => LoadWallet(disposables, syncFilters: true))
+					.DisposeWith(disposables);
 			}
+		}
+
+		private void LoadWallet(CompositeDisposable disposables, bool syncFilters)
+		{
+			if (_isLoading)
+			{
+				return;
+			}
+
+			_isLoading = true;
+
+			if (syncFilters)
+			{
+				// TODO: filter sync here
+			}
+
+			RxApp.MainThreadScheduler.Schedule(async () => await UiServices.WalletManager.LoadWalletAsync(_wallet));
+			ShowFilterProcessingStatus(disposables);
 		}
 
 		private void ShowFilterProcessingStatus(CompositeDisposable disposables)
