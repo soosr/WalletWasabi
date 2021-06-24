@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Blocks;
@@ -44,16 +43,29 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		private uint TotalCount => _filtersToProcessCount + _filtersToSyncCount;
 
-		private int RemainingFiltersToSync => Services.BitcoinStore.SmartHeaderChain.HashesLeft;
+		private uint RemainingFiltersToSync => (uint) Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
 		protected override void OnActivated(CompositeDisposable disposables)
 		{
 			base.OnActivated(disposables);
 
-			var deactivateCancelToken = new CancellationTokenSource();
-			disposables.Add(Disposable.Create(() => deactivateCancelToken.Cancel()));
+			_stopwatch ??= Stopwatch.StartNew();
 
-			ShowProcessingStatus(disposables);
+			Observable.Interval(TimeSpan.FromSeconds(1))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					var segwitActivationHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
+					var processedCount = _filtersToSyncCount - RemainingFiltersToSync;
+
+					if (_wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight)
+					{
+						processedCount += _filtersToProcessCount - lastProcessedFilterHeight - segwitActivationHeight;
+					}
+
+					UpdateStatus(processedCount, _stopwatch.ElapsedMilliseconds);
+				})
+				.DisposeWith(disposables);
 
 			if (!_isLoading)
 			{
@@ -88,53 +100,30 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			if (syncFilters)
 			{
-				await SynchronizeFiltersAsync();
+				while (RemainingFiltersToSync > 0)
+				{
+					await Task.Delay(1000);
+				}
 			}
 
 			await UiServices.WalletManager.LoadWalletAsync(_wallet);
 		}
 
-		private void ShowProcessingStatus(CompositeDisposable disposables)
+		private void UpdateStatus(uint processedCount, double elapsedMilliseconds)
 		{
-			_stopwatch ??= Stopwatch.StartNew();
-
-			Observable.Interval(TimeSpan.FromSeconds(1))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					var segwitActivationHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
-					if (_wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight
-					    && lastProcessedFilterHeight > segwitActivationHeight
-					    && Services.BitcoinStore.SmartHeaderChain.TipHeight is { } tipHeight
-					    && tipHeight > segwitActivationHeight)
-					{
-						var allFilters = tipHeight - segwitActivationHeight;
-						var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
-
-						UpdateStatus(allFilters, processedFilters, _stopwatch.ElapsedMilliseconds);
-					}
-				})
-				.DisposeWith(disposables);
-		}
-
-		private async Task SynchronizeFiltersAsync()
-		{
-			while (RemainingFiltersToSync > 0)
+			if (TotalCount == 0)
 			{
-				await Task.Delay(1000);
+				return;
 			}
-		}
 
-		private void UpdateStatus(uint allFilters, uint processedFilters, double elapsedMilliseconds)
-		{
-			var percent = (decimal) processedFilters / allFilters * 100;
-			_startingFilterIndex ??= processedFilters; // Store the filter index we started on. It is needed for better remaining time calculation.
-			var realProcessedFilters = processedFilters - _startingFilterIndex.Value;
-			var remainingFilterCount = allFilters - processedFilters;
+			var percent = (decimal) processedCount / TotalCount * 100;
+			// _startingFilterIndex ??= processedFilters; // Store the filter index we started on. It is needed for better remaining time calculation.
+			// var realProcessedFilters = processedFilters - _startingFilterIndex.Value;
+			var remainingCount = TotalCount - processedCount;
 
 			var tempPercent = (uint) Math.Round(percent);
 
-			if (tempPercent == 0 || realProcessedFilters == 0 || remainingFilterCount == 0)
+			if (tempPercent == 0 || processedCount == 0)
 			{
 				return;
 			}
@@ -142,7 +131,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			Percent = tempPercent;
 			var percentText = $"{Percent}% completed";
 
-			var remainingMilliseconds = elapsedMilliseconds / realProcessedFilters * remainingFilterCount;
+			var remainingMilliseconds = elapsedMilliseconds / processedCount * remainingCount;
 			var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds(remainingMilliseconds));
 			var remainingTimeText = string.IsNullOrEmpty(userFriendlyTime) ? "" : $"- {userFriendlyTime} remaining";
 
