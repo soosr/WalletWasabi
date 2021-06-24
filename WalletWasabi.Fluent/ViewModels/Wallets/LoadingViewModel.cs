@@ -16,6 +16,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	public partial class LoadingViewModel : ActivatableViewModel
 	{
 		private readonly Wallet _wallet;
+		private readonly uint _filtersToSyncCount;
+		private readonly uint _filtersToProcessCount;
 
 		[AutoNotify] private double _percent;
 		[AutoNotify] private string? _statusText;
@@ -31,7 +33,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			_statusText = "";
 			_percent = 0;
 			_isBackendConnected = Services.Synchronizer.BackendStatus == BackendStatus.Connected;
+			var segwitActivationHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
+			_filtersToSyncCount = (uint) Services.BitcoinStore.SmartHeaderChain.HashesLeft;
+
+			if (_wallet.LastProcessedFilter?.Header?.Height is { } processedHeight &&
+			    Services.BitcoinStore.SmartHeaderChain.TipHeight is { } tipHeight)
+			{
+				_filtersToProcessCount = tipHeight - segwitActivationHeight - processedHeight;
+			}
 		}
+
+		private uint TotalCount => _filtersToProcessCount + _filtersToSyncCount;
 
 		protected override void OnActivated(CompositeDisposable disposables)
 		{
