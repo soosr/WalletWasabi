@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
@@ -45,6 +44,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		private uint TotalCount => _filtersToProcessCount + _filtersToSyncCount;
 
+		private int RemainingFiltersToSync => Services.BitcoinStore.SmartHeaderChain.HashesLeft;
+
 		protected override void OnActivated(CompositeDisposable disposables)
 		{
 			base.OnActivated(disposables);
@@ -52,12 +53,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			var deactivateCancelToken = new CancellationTokenSource();
 			disposables.Add(Disposable.Create(() => deactivateCancelToken.Cancel()));
 
-			if (_isLoading)
-			{
-				// TODO: Refactor status
-				ShowFilterProcessingStatus(disposables);
-			}
-			else
+			ShowProcessingStatus(disposables);
+
+			if (!_isLoading)
 			{
 				Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
 					.ObserveOn(RxApp.MainThreadScheduler)
@@ -69,17 +67,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
 					.Select(x => x.EventArgs)
 					.Where(x => x)
-					.Subscribe(async _ => await LoadWalletAsync(disposables, syncFilters: false))
+					.Subscribe(async _ => await LoadWalletAsync(syncFilters: false))
 					.DisposeWith(disposables);
 
 				this.WhenAnyValue(x => x.IsBackendConnected)
 					.Where(x => x)
-					.Subscribe(async _ => await LoadWalletAsync(disposables, syncFilters: true))
+					.Subscribe(async _ => await LoadWalletAsync(syncFilters: true))
 					.DisposeWith(disposables);
 			}
 		}
 
-		private async Task LoadWalletAsync(CompositeDisposable disposables, bool syncFilters)
+		private async Task LoadWalletAsync(bool syncFilters)
 		{
 			if (_isLoading)
 			{
@@ -93,11 +91,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				await SynchronizeFiltersAsync();
 			}
 
-			RxApp.MainThreadScheduler.Schedule(async () => await UiServices.WalletManager.LoadWalletAsync(_wallet));
-			ShowFilterProcessingStatus(disposables);
+			await UiServices.WalletManager.LoadWalletAsync(_wallet);
 		}
 
-		private void ShowFilterProcessingStatus(CompositeDisposable disposables)
+		private void ShowProcessingStatus(CompositeDisposable disposables)
 		{
 			_stopwatch ??= Stopwatch.StartNew();
 
@@ -122,7 +119,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		private async Task SynchronizeFiltersAsync()
 		{
-
+			while (RemainingFiltersToSync > 0)
+			{
+				await Task.Delay(1000);
+			}
 		}
 
 		private void UpdateStatus(uint allFilters, uint processedFilters, double elapsedMilliseconds)
