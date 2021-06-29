@@ -50,8 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void OnNext(TransactionInfo transactionInfo)
 		{
-			Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo,
-				SelectedPrivacySuggestion!.TransactionResult));
+
 		}
 
 		protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)

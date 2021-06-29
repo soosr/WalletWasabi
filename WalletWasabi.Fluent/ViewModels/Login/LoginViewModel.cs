@@ -1,4 +1,5 @@
 using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
@@ -7,6 +8,7 @@ using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
@@ -110,6 +112,13 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			}
 
 			return dialogResult.Result;
+		}
+
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			base.OnNavigatedTo(isInHistory, disposables);
+			Navigate(NavigationTarget.DialogScreen).To(new TransactionPreviewViewModel());
+
 		}
 	}
 }

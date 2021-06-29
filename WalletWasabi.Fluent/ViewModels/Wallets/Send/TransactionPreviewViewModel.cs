@@ -1,8 +1,6 @@
 using System;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
-using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
@@ -25,31 +23,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private string _confirmationTimeText;
 		[AutoNotify] private SmartLabel _labels;
 
-		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, BuildTransactionResult transaction)
+		public TransactionPreviewViewModel()
 		{
-			_wallet = wallet;
-			_labels = SmartLabel.Empty;
-			_info = info;
+			_labels = new SmartLabel("7, La, Laaaaaaaaaaaaaaaaaaaaaaaabel, Labe, Label, Self, Test");
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
 			_confirmationTimeText = "";
-
-			var destinationAmount = transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
-			var btcAmountText = $"{destinationAmount} bitcoins ";
-			var fiatAmountText = destinationAmount.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
-			AmountText = $"{btcAmountText}{fiatAmountText}";
-
-			AddressText = info.Address.ToString();
-
-			var fee = transaction.Fee;
-			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
-			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
-			FeeText = $"{btcFeeText}{fiatFeeText}";
-
-			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
-			IsPayJoin = PayJoinUrl is not null;
-
-			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(transaction));
 		}
 
 		public string AmountText { get; }
@@ -67,7 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			base.OnNavigatedTo(isInHistory, disposables);
 
 			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(_info.ConfirmationTimeSpan)} ";
-			Labels = _info.Labels;
+			// Labels = _info.Labels;
 		}
 
 		private async Task OnNextAsync(BuildTransactionResult transaction)
