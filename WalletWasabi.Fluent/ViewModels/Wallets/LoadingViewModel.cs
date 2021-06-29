@@ -46,18 +46,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
+					var downloadedFilters = _filtersToSyncCount - RemainingFiltersToSync;
+
+					uint processedFilters = 0;
 					if (Services.BitcoinStore.SmartHeaderChain.TipHeight is { } tipHeight &&
 					    _wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight)
 					{
-						var walletHeight = (uint) _wallet.KeyManager.GetBestHeight().Value;
-
-						var downloadedFilters = _filtersToSyncCount - RemainingFiltersToSync;
-						var processedFilters = tipHeight - walletHeight;
-
-						var processedCount = downloadedFilters + processedFilters;
-
-						UpdateStatus(processedCount, _stopwatch.ElapsedMilliseconds);
+						processedFilters = tipHeight - lastProcessedFilterHeight;
 					}
+
+					var processedCount = downloadedFilters + processedFilters;
+
+					Console.WriteLine($"Total: {TotalCount} Processed:{processedCount} Downloaded: {downloadedFilters} ProcessedF: {processedFilters}");
+
+					UpdateStatus(processedCount, _stopwatch.ElapsedMilliseconds);
 				})
 				.DisposeWith(disposables);
 
@@ -107,7 +109,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		private void SetInitValues()
 		{
-			var segwitActivationHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
 			_filtersToSyncCount = (uint) Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
 			if (Services.BitcoinStore.SmartHeaderChain.TipHeight is { } tipHeight)
