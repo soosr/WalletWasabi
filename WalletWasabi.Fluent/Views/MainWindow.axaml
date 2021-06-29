@@ -15,7 +15,7 @@
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="PreferSystemChrome"
         Title="Wasabi Wallet"
-        WindowState="{Binding WindowState, Mode=TwoWay}">
+        WindowState="Maximized">
   <i:Interaction.Behaviors>
     <behaviors:RegisterNotificationHostBehavior/>
   </i:Interaction.Behaviors>
