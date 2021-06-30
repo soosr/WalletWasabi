@@ -52,7 +52,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					if (Services.BitcoinStore.SmartHeaderChain.TipHeight is { } tipHeight &&
 					    _wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight)
 					{
-						processedFilters = tipHeight - lastProcessedFilterHeight;
+						processedFilters = _filtersToProcessCount - (tipHeight - lastProcessedFilterHeight);
 					}
 
 					var processedCount = downloadedFilters + processedFilters;
@@ -111,10 +111,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		{
 			_filtersToSyncCount = (uint) Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
-			if (Services.BitcoinStore.SmartHeaderChain.TipHeight is { } tipHeight)
+			if (Services.BitcoinStore.SmartHeaderChain.ServerTipHeight is { } tipHeight)
 			{
+				var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
 				var bestHeight = (uint) _wallet.KeyManager.GetBestHeight().Value;
-				_filtersToProcessCount = tipHeight - bestHeight;
+
+				_filtersToProcessCount = tipHeight - (bestHeight < startingHeight ? startingHeight : bestHeight);
 			}
 		}
 
