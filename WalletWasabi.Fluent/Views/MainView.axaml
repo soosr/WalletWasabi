@@ -42,6 +42,7 @@
         <DockPanel>
           <Panel Background="{DynamicResource RegionColor}" DockPanel.Dock="Bottom" VerticalAlignment="Bottom"
                  Height="32">
+            <Button Click="Button_OnClick">Test</Button>
             <statusBar:StatusBar DataContext="{Binding StatusBar}" />
           </Panel>
           <Panel>
