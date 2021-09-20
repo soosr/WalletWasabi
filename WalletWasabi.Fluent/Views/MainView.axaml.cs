@@ -19,15 +19,5 @@ namespace WalletWasabi.Fluent.Views
 		{
 			AvaloniaXamlLoader.Load(this);
 		}
-
-		private void Button_OnClick(object? sender, RoutedEventArgs e)
-		{
-			RxApp.MainThreadScheduler.Schedule(async () =>
-			{
-				DataContext = null;
-				await Task.Delay(2000);
-				DataContext = MainViewModel.Instance;
-			});
-		}
 	}
 }

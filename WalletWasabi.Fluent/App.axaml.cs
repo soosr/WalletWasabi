@@ -59,6 +59,8 @@ namespace WalletWasabi.Fluent
 				{
 					desktop.ShutdownRequested += DesktopOnShutdownRequested;
 
+					desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
 					desktop.MainWindow = new MainWindow
 					{
 						DataContext = MainViewModel.Instance

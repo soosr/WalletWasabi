@@ -23,5 +23,6 @@
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">
     <local:MainView />
+    <Button Click="Button_OnClick">Test</Button>
   </Panel>
 </Window>
