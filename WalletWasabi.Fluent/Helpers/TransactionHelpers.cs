@@ -115,58 +115,6 @@ namespace WalletWasabi.Fluent.Helpers
             return false;
 		}
 
-		public static async Task BuildTransactionAsNormalAsync(TransactionInfo transactionInfo, Wallet wallet, RoutableViewModel callerViewModel)
-		{
-			try
-			{
-				var txRes = await Task.Run(() => BuildTransaction(wallet, transactionInfo));
-
-				if (transactionInfo.UserDidntRequestOptimisation)
-				{
-					callerViewModel.Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, txRes));
-				}
-				else
-				{
-					callerViewModel.Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, txRes));
-				}
-
-			}
-			catch (InsufficientBalanceException)
-			{
-				var maxAmount = Money.FromUnit(transactionInfo.Coins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
-				var txRes = await Task.Run(() => BuildTransaction(wallet, transactionInfo.Address,
-					maxAmount, transactionInfo.Labels, transactionInfo.FeeRate, transactionInfo.Coins, subtractFee: true));
-				var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private, txRes, wallet.Synchronizer.UsdExchangeRate); //TODO: Not always private funds
-				var result = await callerViewModel.NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
-
-				if (result.Result)
-				{
-					callerViewModel.Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, txRes));
-				}
-				else
-				{
-					callerViewModel.Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo));
-				}
-			}
-		}
-
-		public static async Task BuildTransactionAsPayJoinAsync(TransactionInfo transactionInfo, Wallet wallet, RoutableViewModel callerViewModel)
-		{
-			try
-			{
-				// Do not add the PayJoin client yet, it will be added before broadcasting.
-				var txRes = await Task.Run(() => BuildTransaction(wallet, transactionInfo));
-				callerViewModel.Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, txRes));
-			}
-			catch (InsufficientBalanceException)
-			{
-				await callerViewModel.ShowErrorAsync("Transaction Building",
-					"There are not enough private funds to cover the transaction fee", //TODO: not always private funds
-					"Wasabi was unable to create your transaction.");
-				callerViewModel.Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo));
-			}
-		}
-
 		public static TimeSpan CalculateConfirmationTime(double targetBlock)
 		{
 			var timeInMinutes = Math.Ceiling(targetBlock) * 10;

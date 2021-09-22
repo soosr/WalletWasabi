@@ -90,11 +90,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				if (_transactionInfo.PayJoinClient is { })
 				{
-					await TransactionHelpers.BuildTransactionAsPayJoinAsync(_transactionInfo, _wallet, this);
+					await BuildTransactionAsPayJoinAsync(_transactionInfo);
 				}
 				else
 				{
-					await TransactionHelpers.BuildTransactionAsNormalAsync(_transactionInfo, _wallet, this);
+					await BuildTransactionAsNormalAsync(_transactionInfo);
 				}
 			}
 			catch (Exception ex)
@@ -102,6 +102,58 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				Logger.LogError(ex);
 				await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(),
 					"Wasabi was unable to create your transaction.");
+			}
+		}
+
+		private async Task BuildTransactionAsNormalAsync(TransactionInfo transactionInfo)
+		{
+			try
+			{
+				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
+
+				if (transactionInfo.UserDidntRequestOptimisation)
+				{
+					Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo, txRes), NavigationMode.Skip);
+				}
+				else
+				{
+					Navigate().To(new OptimisePrivacyViewModel(_wallet, transactionInfo, txRes), NavigationMode.Skip);
+				}
+
+			}
+			catch (InsufficientBalanceException)
+			{
+				var maxAmount = Money.FromUnit(transactionInfo.Coins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
+				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address,
+					maxAmount, transactionInfo.Labels, transactionInfo.FeeRate, transactionInfo.Coins, subtractFee: true));
+				var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private, txRes, _wallet.Synchronizer.UsdExchangeRate); //TODO: Not always private funds
+				var result = await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
+
+				if (result.Result)
+				{
+					Navigate().To(new OptimisePrivacyViewModel(_wallet, transactionInfo, txRes), NavigationMode.Skip);
+				}
+				else
+				{
+					Navigate().To(new PrivacyControlViewModel(_wallet, transactionInfo), NavigationMode.Skip);
+				}
+			}
+		}
+
+		private async Task BuildTransactionAsPayJoinAsync(TransactionInfo transactionInfo)
+		{
+			try
+			{
+				// Do not add the PayJoin client yet, it will be added before broadcasting.
+				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
+				Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo, txRes), NavigationMode.Skip);
+			}
+			catch (InsufficientBalanceException)
+			{
+				await ShowErrorAsync("Transaction Building",
+					"There are not enough private funds to cover the transaction fee", //TODO: not always private funds
+					"Wasabi was unable to create your transaction.");
+				Navigate().To(new PrivacyControlViewModel(_wallet, transactionInfo), NavigationMode.Skip);
 			}
 		}
 
