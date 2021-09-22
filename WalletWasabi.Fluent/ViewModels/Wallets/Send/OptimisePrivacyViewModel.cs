@@ -54,6 +54,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void OnNext(TransactionInfo transactionInfo)
 		{
+			_transactionInfo.UserDidntRequestOptimisation =
+				_requestedTransaction == SelectedPrivacySuggestion!.TransactionResult;
+
 			Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo,
 				SelectedPrivacySuggestion!.TransactionResult));
 		}
@@ -64,6 +67,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (!inHistory)
 			{
+				if (_transactionInfo.UserDidntRequestOptimisation)
+				{
+					Navigate().To(new TransactionPreviewViewModel(_wallet, _transactionInfo, _requestedTransaction));
+
+					return;
+				}
+
 				RxApp.MainThreadScheduler.Schedule(async () =>
 				{
 					IsBusy = true;
