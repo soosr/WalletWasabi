@@ -149,7 +149,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			return result;
 		}
 
-		protected async Task ShowErrorAsync(string title, string message, string caption)
+		public async Task ShowErrorAsync(string title, string message, string caption)
 		{
 			var dialog = new ShowErrorDialogViewModel(message, title, caption);
 			await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);

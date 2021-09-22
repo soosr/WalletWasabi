@@ -15,6 +15,7 @@ using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -116,10 +117,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						return allFilled && !hasError;
 					});
 
-			NextCommand = ReactiveCommand.Create(() =>
-			{
-				Navigate().To(new SendFeeViewModel(_wallet, _transactionInfo, true));
-			}, nextCommandCanExecute);
+			NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync, nextCommandCanExecute);
 
 			EnableAutoBusyOn(NextCommand);
 		}
@@ -133,6 +131,55 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public ICommand AutoPasteCommand { get; }
 
 		public ICommand QRCommand { get; }
+
+		private async Task OnNextAsync()
+		{
+			var transactionInfo = _transactionInfo;
+			var targetAnonymitySet = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+			var mixedCoins = _wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
+			var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
+
+			transactionInfo.Coins = mixedCoins;
+			transactionInfo.FeeRate = GetFeeRate();
+			_transactionInfo.ConfirmationTimeSpan = TransactionHelpers.CalculateConfirmationTime(1); //TODO: get the block number from the estimations
+
+
+			if (transactionInfo.Amount > totalMixedCoinsAmount)
+			{
+				Navigate().To(new PrivacyControlViewModel(_wallet, transactionInfo));
+				return;
+			}
+
+			try
+			{
+				if (_transactionInfo.PayJoinClient is { })
+				{
+					await TransactionHelpers.BuildTransactionAsPayJoinAsync(transactionInfo, _wallet, this);
+				}
+				else
+				{
+					await TransactionHelpers.BuildTransactionAsNormalAsync(transactionInfo, _wallet, this);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(),
+					"Wasabi was unable to create your transaction.");
+			}
+		}
+
+		private FeeRate GetFeeRate()
+		{
+			decimal satPerVByte = 10; // TODO: default value when there are no estimations
+
+			if (_wallet.FeeProvider.AllFeeEstimate?.Estimations.First() is { } fastestFeeEstimation) // TODO: this could be overpaid, maybe other is better?
+			{
+				satPerVByte = fastestFeeEstimation.Value;
+			}
+
+			return new FeeRate(satPerVByte);
+		}
 
 		private async Task OnAutoPasteAsync()
 		{

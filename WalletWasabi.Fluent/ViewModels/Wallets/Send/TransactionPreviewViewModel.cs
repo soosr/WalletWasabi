@@ -74,7 +74,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			AdjustFeeCommand = ReactiveCommand.Create(() =>
 			{
-				Navigate().To(new SendFeeViewModel(wallet, info, false));
+				Navigate().To(new SendFeeViewModel(wallet, info));
 			});
 		}
 

@@ -65,6 +65,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			base.OnNavigatedTo(inHistory, disposables);
 
+			_transactionInfo.UserDidntRequestOptimisation = false;
+
 			if (!inHistory)
 			{
 				if (_transactionInfo.UserDidntRequestOptimisation)

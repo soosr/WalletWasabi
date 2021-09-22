@@ -41,14 +41,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMaximum;
 		[AutoNotify] private int _sliderValue;
 		private bool _updatingCurrentValue;
-		private double _lastConfirmationTarget;
-		private readonly bool _isSilent;
 		private readonly FeeRate? _entryFeeRate;
 
-		public SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
+		public SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo)
 		{
-			_isSilent = isSilent;
-			IsBusy = isSilent;
 			_wallet = wallet;
 			_transactionInfo = transactionInfo;
 			_entryFeeRate = transactionInfo.FeeRate;
@@ -58,8 +54,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			_sliderMinimum = 0;
 			_sliderMaximum = 9;
-			_currentConfirmationTarget = 36;
-			_lastConfirmationTarget = _currentConfirmationTarget;
 
 			this.WhenAnyValue(x => x.CurrentConfirmationTarget)
 				.Subscribe(x =>
@@ -75,8 +69,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				_lastConfirmationTarget = CurrentConfirmationTarget;
-				_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastConfirmationTarget);
+				var newFeeRate = new FeeRate(GetSatoshiPerByte(CurrentConfirmationTarget));
+
+				if (newFeeRate == _entryFeeRate)
+				{
+					Navigate().Back();
+					return;
+				}
+
+				_transactionInfo.FeeRate = newFeeRate;
+				_transactionInfo.ConfirmationTimeSpan = TransactionHelpers.CalculateConfirmationTime(CurrentConfirmationTarget);
 
 				await OnNextAsync();
 			});
@@ -84,35 +86,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task OnNextAsync()
 		{
-			var transactionInfo = _transactionInfo;
-			var targetAnonymitySet = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
-			var mixedCoins = _wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
-			var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
-			transactionInfo.Coins = mixedCoins;
-
-			transactionInfo.FeeRate = new FeeRate(GetSatoshiPerByte(CurrentConfirmationTarget));
-
-			if (transactionInfo.FeeRate == _entryFeeRate)
-			{
-				Navigate().Back();
-				return;
-			}
-
-			if (transactionInfo.Amount > totalMixedCoinsAmount)
-			{
-				Navigate().To(new PrivacyControlViewModel(_wallet, transactionInfo));
-				return;
-			}
-
 			try
 			{
 				if (_transactionInfo.PayJoinClient is { })
 				{
-					await BuildTransactionAsPayJoinAsync(transactionInfo);
+					await TransactionHelpers.BuildTransactionAsPayJoinAsync(_transactionInfo, _wallet, this);
 				}
 				else
 				{
-					await BuildTransactionAsNormalAsync(transactionInfo, totalMixedCoinsAmount);
+					await TransactionHelpers.BuildTransactionAsNormalAsync(_transactionInfo, _wallet, this);
 				}
 			}
 			catch (Exception ex)
@@ -148,18 +130,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				// TODO What to do?
 			}
-
-			if (_isSilent)
-			{
-				RxApp.MainThreadScheduler.Schedule(async () =>
-				{
-					// TODO implement algorithm to intelligently select fees.
-					_lastConfirmationTarget = 1;
-					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastConfirmationTarget);
-
-					await OnNextAsync();
-				});
-			}
 		}
 
 		private double InitCurrentConfirmationTarget()
@@ -188,56 +158,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return ConfirmationTargetValues[indexOfClosestValue];
 		}
 
-		private async Task BuildTransactionAsNormalAsync(TransactionInfo transactionInfo, Money totalMixedCoinsAmount)
-		{
-			try
-			{
-				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
-				Navigate().To(new OptimisePrivacyViewModel(_wallet, transactionInfo, txRes));
-			}
-			catch (InsufficientBalanceException)
-			{
-				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address,
-					totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, transactionInfo.Coins,
-					subtractFee: true));
-				var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private, txRes,
-					_wallet.Synchronizer.UsdExchangeRate);
-				var result = await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
 
-				if (result.Result)
-				{
-					Navigate().To(new OptimisePrivacyViewModel(_wallet, transactionInfo, txRes));
-				}
-				else
-				{
-					Navigate().To(new PrivacyControlViewModel(_wallet, transactionInfo));
-				}
-			}
-		}
-
-		private async Task BuildTransactionAsPayJoinAsync(TransactionInfo transactionInfo)
-		{
-			try
-			{
-				// Do not add the PayJoin client yet, it will be added before broadcasting.
-				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
-				Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo, txRes));
-			}
-			catch (InsufficientBalanceException)
-			{
-				await ShowErrorAsync("Transaction Building",
-					"There are not enough private funds to cover the transaction fee",
-					"Wasabi was unable to create your transaction.");
-				Navigate().To(new PrivacyControlViewModel(_wallet, transactionInfo));
-			}
-		}
-
-		private TimeSpan CalculateConfirmationTime(double targetBlock)
-		{
-			var timeInMinutes = Math.Ceiling(targetBlock) * 10;
-			var time = TimeSpan.FromMinutes(timeInMinutes);
-			return time;
-		}
 
 		private void SetSliderValue(double confirmationTarget)
 		{
