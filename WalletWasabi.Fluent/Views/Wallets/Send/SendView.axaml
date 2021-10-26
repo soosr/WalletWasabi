@@ -81,6 +81,13 @@
                    MaxTextLength="{StaticResource MaxLabelLength}"
                    IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}" />
       </DockPanel>
+      <Button Classes="h7 plain activeHyperLink" Margin="0 10 0 0"
+              DockPanel.Dock="Bottom"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Bottom"
+              Command="{Binding AdvancedOptionsCommand}"
+              Content="Advanced..." />
+
     </DockPanel>
   </c:ContentArea>
 </UserControl>
