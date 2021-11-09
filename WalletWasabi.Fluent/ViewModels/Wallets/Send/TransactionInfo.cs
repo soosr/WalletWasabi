@@ -28,6 +28,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public BitcoinAddress Address { get; set; }
 
+		public BitcoinAddress? CustomChangeAddress { get; set; }
+
 		public FeeRate FeeRate { get; set; } = FeeRate.Zero;
 
 		public FeeRate CustomFeeRate { get; set; } = FeeRate.Zero;

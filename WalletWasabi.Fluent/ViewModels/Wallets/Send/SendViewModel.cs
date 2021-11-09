@@ -103,7 +103,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			});
 
 			AdvancedOptionsCommand = ReactiveCommand.CreateFromTask(async () =>
-				await NavigateDialogAsync(new AdvancedSendOptionsViewModel(_transactionInfo), NavigationTarget.CompactDialogScreen));
+				await NavigateDialogAsync(new AdvancedSendOptionsViewModel(_transactionInfo, _wallet.Network), NavigationTarget.CompactDialogScreen));
 
 			var nextCommandCanExecute =
 				this.WhenAnyValue(x => x.AmountBtc, x => x.To).Select(_ => Unit.Default)

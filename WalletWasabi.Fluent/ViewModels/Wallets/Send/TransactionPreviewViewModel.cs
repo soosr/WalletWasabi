@@ -101,7 +101,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task ShowAdvancedDialogAsync()
 		{
-			var result = await NavigateDialogAsync(new AdvancedSendOptionsViewModel(_info), NavigationTarget.CompactDialogScreen);
+			var result = await NavigateDialogAsync(new AdvancedSendOptionsViewModel(_info, _wallet.Network), NavigationTarget.CompactDialogScreen);
 
 			if (result.Kind == DialogResultKind.Normal)
 			{
