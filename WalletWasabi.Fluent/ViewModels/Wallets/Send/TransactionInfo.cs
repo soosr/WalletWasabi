@@ -30,6 +30,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public FeeRate FeeRate { get; set; } = FeeRate.Zero;
 
+		public FeeRate CustomFeeRate { get; set; } = FeeRate.Zero;
+
 		public TimeSpan ConfirmationTimeSpan { get; set; }
 
 		public IEnumerable<SmartCoin> Coins { get; set; } = Enumerable.Empty<SmartCoin>();
@@ -39,6 +41,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public bool IsPayJoin => PayJoinClient is { };
 
 		public bool IsPrivatePocketUsed => Coins.All(x => x.HdPubKey.AnonymitySet >= _privateCoinThreshold);
+
+		public bool IsCustomFeeUsed => CustomFeeRate != FeeRate.Zero;
 
 		public bool SubtractFee { get; set; }
 

@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             mc:Ignorable="d"
+             x:DataType="vm:AdvancedSendOptionsViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.AdvancedSendOptionsView">
+  <c:ContentArea Title="{Binding Title}" Caption=""
+                 EnableBack="{Binding EnableBack}"
+                 EnableNext="True"
+                 NextContent="Done"
+                 EnableCancel="{Binding EnableCancel}"
+                 IsBusy="{Binding IsBusy}"
+                 Height="300" Width="550"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+    <DockPanel>
+      <DockPanel.Styles>
+        <Style Selector="DockPanel > Label">
+          <Setter Property="MinWidth" Value="130" />
+        </Style>
+      </DockPanel.Styles>
+
+      <!-- Custom Fee -->
+      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+        <Label DockPanel.Dock="Left" Content="_Transaction Fee:" Target="transactionFeeTb" />
+        <TextBox x:Name="transactionFeeTb" MaxLength="250" Text="{Binding CustomFee}" Watermark="Enter a custom sat/vByte amount" VerticalAlignment="Top" />
+      </DockPanel>
+
+    </DockPanel>
+  </c:ContentArea>
+</UserControl>
