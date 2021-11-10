@@ -53,6 +53,23 @@
         <TextBox Classes="selectableTextBlock" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
       </c:PreviewItem>
       <Separator />
+      <DockPanel IsVisible="{Binding !!CustomChangeAddress}">
+        <Button Classes="plain"
+                Command="{Binding ShowAdvancedCommand}"
+                ToolTip.Tip="Change transaction fee or confirmation time"
+                DockPanel.Dock="Right"
+                Margin="10 0">
+          <Viewbox Height="20">
+            <PathIcon Data="{StaticResource adjust_fee_regular}" Foreground="{DynamicResource SystemAccentColor}" />
+          </Viewbox>
+        </Button>
+
+        <c:PreviewItem Icon="{StaticResource transceive_regular}"
+                       Text="change will be received to">
+          <TextBox Classes="selectableTextBlock" Text="{Binding CustomChangeAddress, FallbackValue=btc029382398fkj34f98df239823}" />
+        </c:PreviewItem>
+      </DockPanel>
+      <Separator IsVisible="{Binding !!CustomChangeAddress}"/>
       <c:PreviewItem Icon="{StaticResource lock_shield_regular}"
                      Text="PayJoin will be used to protect your privacy"
                      IsVisible="{Binding IsPayJoin}">

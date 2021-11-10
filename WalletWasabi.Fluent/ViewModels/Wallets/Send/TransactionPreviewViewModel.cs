@@ -38,6 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private bool _transactionHasPockets;
 		[AutoNotify] private bool _adjustFeeAvailable;
 		[AutoNotify] private bool _isCustomFeeUsed;
+		[AutoNotify] private string? _customChangeAddress;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 		{
@@ -67,6 +68,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				_nextButtonText = "Confirm";
 			}
+
+			ShowAdvancedCommand = ReactiveCommand.Create(async () => await ShowAdvancedDialogAsync());
 
 			AdjustFeeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -98,6 +101,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public ICommand AvoidChangeCommand { get; }
 
 		public ICommand ChangePocketsCommand { get; }
+
+		public ICommand ShowAdvancedCommand { get; }
 
 		private async Task ShowAdvancedDialogAsync()
 		{
@@ -318,6 +323,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			TransactionHasPockets = !_info.IsPrivatePocketUsed;
 
 			IsCustomFeeUsed = _info.IsCustomFeeUsed;
+
+			CustomChangeAddress = _info.CustomChangeAddress?.ToString();
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
