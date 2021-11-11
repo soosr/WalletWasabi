@@ -18,18 +18,24 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class TransactionHelpers
 	{
-		public static BuildTransactionResult BuildTransaction(Wallet wallet, BitcoinAddress address, Money amount, SmartLabel labels, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool subtractFee, IPayjoinClient? payJoinClient = null)
+		public static BuildTransactionResult BuildTransaction(Wallet wallet, BitcoinAddress address, BitcoinAddress? customChangeAddress, Money amount, SmartLabel labels, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool subtractFee, IPayjoinClient? payJoinClient = null)
 		{
 			if (payJoinClient is { } && subtractFee)
 			{
 				throw new InvalidOperationException("Not possible to subtract the fee.");
 			}
 
-			var intent = new PaymentIntent(
-				destination: address,
-				amount: amount,
-				subtractFee: subtractFee,
-				label: labels);
+			var requests = new List<DestinationRequest>();
+
+			if (customChangeAddress is { })
+			{
+				requests.Add(new DestinationRequest(customChangeAddress, MoneyRequest.CreateChange(subtractFee: true), labels));
+			}
+
+			var activeDestinationRequest = new DestinationRequest(address, MoneyRequest.Create(amount, subtractFee), labels);
+			requests.Add(activeDestinationRequest);
+
+			var intent = new PaymentIntent(requests);
 
 			var txRes = wallet.BuildTransaction(
 				password: wallet.Kitchen.SaltSoup(),
@@ -52,6 +58,7 @@ namespace WalletWasabi.Fluent.Helpers
 			return BuildTransaction(
 				wallet,
 				transactionInfo.Address,
+				transactionInfo.CustomChangeAddress,
 				transactionInfo.Amount,
 				transactionInfo.UserLabels,
 				transactionInfo.IsCustomFeeUsed ? transactionInfo.CustomFeeRate : transactionInfo.FeeRate,
