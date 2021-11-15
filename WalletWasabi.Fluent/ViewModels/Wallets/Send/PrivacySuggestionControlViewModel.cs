@@ -23,18 +23,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private PrivacyOptimisationLevel _optimisationLevel;
 		[AutoNotify] private bool _optimisationLevelGood;
 
-		public PrivacySuggestionControlViewModel(
-			decimal originalAmount,
+		public PrivacySuggestionControlViewModel(decimal originalAmount,
 			BuildTransactionResult transactionResult,
 			PrivacyOptimisationLevel optimisationLevel,
 			decimal fiatExchangeRate,
+			TransactionInfo transactionInfo,
 			params PrivacySuggestionBenefit[] benefits)
 		{
 			TransactionResult = transactionResult;
 			_optimisationLevel = optimisationLevel;
 			_benefits = benefits.ToList();
 
-			decimal total = transactionResult.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+			decimal total = transactionResult.CalculateDestinationAmount(transactionInfo.Address).ToDecimal(MoneyUnit.BTC);
 
 			var fiatTotal = total * fiatExchangeRate;
 

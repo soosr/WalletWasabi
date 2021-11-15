@@ -303,7 +303,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			_transaction = transactionResult;
 
-			var destinationAmount = _transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+			var destinationAmount = _transaction.CalculateDestinationAmount(_info.Address).ToDecimal(MoneyUnit.BTC);
 			var btcAmountText = $"{destinationAmount} bitcoins ";
 			var fiatAmountText =
 				destinationAmount.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");

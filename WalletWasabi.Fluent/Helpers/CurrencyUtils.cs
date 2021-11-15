@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Linq;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 
 namespace WalletWasabi.Fluent.Helpers
@@ -15,21 +16,9 @@ namespace WalletWasabi.Fluent.Helpers
 			NumberDecimalSeparator = "."
 		};
 
-		public static Money CalculateDestinationAmount(this BuildTransactionResult result)
+		public static Money CalculateDestinationAmount(this BuildTransactionResult result, BitcoinAddress address)
 		{
-			var isNormalPayment = result.OuterWalletOutputs.Any();
-
-			if (isNormalPayment)
-			{
-				return result.OuterWalletOutputs.Sum(x => x.Amount);
-			}
-			else
-			{
-				return result.InnerWalletOutputs
-					.Where(x => !x.HdPubKey.IsInternal)
-					.Select(x => x.Amount)
-					.Sum();
-			}
+			return result.Transaction.Transaction.Outputs.First(x => x.ScriptPubKey == address.ScriptPubKey).Value;
 		}
 
 		public static string FormattedBtc(this Money amount)
