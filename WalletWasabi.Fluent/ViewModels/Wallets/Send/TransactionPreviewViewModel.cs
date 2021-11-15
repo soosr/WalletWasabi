@@ -34,6 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private string _nextButtonText;
 		[AutoNotify] private SmartLabel _labels;
 		[AutoNotify] private string _amountText = "";
+		[AutoNotify] private string _addressText = "";
 		[AutoNotify] private bool _transactionHasChange;
 		[AutoNotify] private bool _transactionHasPockets;
 		[AutoNotify] private bool _adjustFeeAvailable;
@@ -49,7 +50,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
 
-			AddressText = info.Address.ToString();
 			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 			IsPayJoin = PayJoinUrl is not null;
 			AdjustFeeAvailable = !TransactionFeeHelper.AreTransactionFeesEqual(_wallet);
@@ -89,8 +89,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		}
 
 		public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
-
-		public string AddressText { get; }
 
 		public string? PayJoinUrl { get; }
 
@@ -303,6 +301,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			_transaction = transactionResult;
 
+			AddressText = _info.Address.ToString();
+
+
 			var destinationAmount = _transaction.CalculateDestinationAmount(_info.Address).ToDecimal(MoneyUnit.BTC);
 			var btcAmountText = $"{destinationAmount} bitcoins ";
 			var fiatAmountText =
@@ -318,7 +319,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
-			TransactionHasChange = _transaction.OuterWalletOutputs.Sum(x => x.Amount) > fee && _transaction.InnerWalletOutputs.Sum(x => x.Amount) > 0;
+			TransactionHasChange = _transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _info.Address.ScriptPubKey);
 
 			TransactionHasPockets = !_info.IsPrivatePocketUsed;
 
