@@ -11,6 +11,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		public bool IsEnabled
 		{
+
 			get => GetValue(IsEnabledProperty);
 			set => SetValue(IsEnabledProperty, value);
 		}
