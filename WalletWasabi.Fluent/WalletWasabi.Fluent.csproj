@@ -21,7 +21,6 @@
 	<ItemGroup>
 		<PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
 		<PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
-		<PackageReference Include="Avalonia.Controls.DataGrid" Version="$(AvaloniaVersion)" />
 		<PackageReference Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" Condition="'$(Configuration)' == 'Debug'" />
 		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.11-rc.1" />
 		<PackageReference Include="OpenCvSharp4" Version="4.5.2.20210404" />
