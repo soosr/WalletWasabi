@@ -85,7 +85,6 @@
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentLight.xaml" />
 
   <!-- Needs to be here because of dependency reason -->
-  <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
   <StyleInclude Source="avares://DataBox/Themes/Fluent.axaml"/>
 
   <StyleInclude Source="avares://Avalonia.Xaml.Interactions/Draggable/Styles.axaml" />
