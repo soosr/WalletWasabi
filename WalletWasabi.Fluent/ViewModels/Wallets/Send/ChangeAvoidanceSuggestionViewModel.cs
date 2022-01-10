@@ -75,11 +75,6 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	public static async Task<IEnumerable<ChangeAvoidanceSuggestionViewModel>> GenerateSuggestionsAsync(
 		TransactionInfo transactionInfo, Wallet wallet, BuildTransactionResult requestedTransaction)
 	{
-		if (transactionInfo.Address is null)
-		{
-			throw new NullReferenceException();
-		}
-
 		var intent = new PaymentIntent(
 			transactionInfo.Address,
 			MoneyRequest.CreateAllRemaining(subtractFee: true),

@@ -17,6 +17,7 @@ public partial class TransactionInfo
 	public TransactionInfo()
 	{
 		_privateCoinThreshold = Services.Config.MinAnonScoreTarget;
+		AddressString = "";
 
 		this.WhenAnyValue(x => x.Amount)
 			.Subscribe(_ => OnAmountChanged());
@@ -24,7 +25,9 @@ public partial class TransactionInfo
 
 	public SmartLabel UserLabels { get; set; } = SmartLabel.Empty;
 
-	public BitcoinAddress? Address { get; set; }
+	public string AddressString { get; set; }
+
+	public BitcoinAddress Address => BitcoinAddress.Create(AddressString, Services.WalletManager.Network);
 
 	public FeeRate FeeRate { get; set; } = FeeRate.Zero;
 

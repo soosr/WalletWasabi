@@ -61,11 +61,6 @@ public static class TransactionHelpers
 
 	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, bool isPayJoin = false)
 	{
-		if (transactionInfo.Address is null)
-		{
-			throw new Exception("Unable to build transaction without a valid address.");
-		}
-
 		if (transactionInfo.IsOptimized)
 		{
 			return BuildChangelessTransaction(
@@ -90,7 +85,6 @@ public static class TransactionHelpers
 			transactionInfo.Coins,
 			transactionInfo.SubtractFee,
 			isPayJoin ? transactionInfo.PayJoinClient : null);
-
 	}
 
 	public static bool TryBuildTransaction(Wallet wallet, TransactionInfo transactionInfo, [NotNullWhen(true)] out BuildTransactionResult? transaction, bool isPayJoin = false)
@@ -152,6 +146,7 @@ public static class TransactionHelpers
 			{
 				filePath = $"{filePath}.{psbtExtension}";
 			}
+
 			await File.WriteAllBytesAsync(filePath, transaction.Psbt.ToBytes());
 
 			return true;

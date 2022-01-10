@@ -30,7 +30,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		this.WhenAnyValue(x => x.TransactionHasChange, x => x.TransactionHasPockets)
 			.Subscribe(_ => { MaxPrivacy = !TransactionHasPockets && !TransactionHasChange; });
 
-		AddressText = info.Address?.ToString() ?? "";
+		AddressText = info.AddressString;
 		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 		IsPayJoin = PayJoinUrl is not null;
 	}
@@ -65,7 +65,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		FeeText = $"{btcFeeText}{fiatFeeText}";
 
 		TransactionHasChange =
-			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _info.Address?.ScriptPubKey);
+			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _info.Address.ScriptPubKey);
 
 		TransactionHasPockets = !_info.IsPrivate;
 
