@@ -9,13 +9,14 @@ public static class CoinPocketHelper
 {
 	public static readonly SmartLabel UnlabelledFundsText = new("Unlabelled Funds");
 	public static readonly SmartLabel PrivateFundsText = new("Private Funds");
+	public static readonly SmartLabel SemiPrivateFundsText = new("Semi Private Funds");
 
 	public static IEnumerable<(SmartLabel SmartLabel, ICoinsView Coins)> GetPockets(this ICoinsView allCoins, int privateAnonSetThreshold)
 	{
 		List<(SmartLabel SmartLabel, ICoinsView Coins)> pockets = new();
 
 		var clusters = allCoins
-			.Where(x => x.HdPubKey.AnonymitySet < privateAnonSetThreshold)
+			.Where(x => x.HdPubKey.AnonymitySet == 1)
 			.GroupBy(x => x.HdPubKey.Cluster.Labels);
 
 		CoinsView? unLabelledCoins = null;
@@ -38,6 +39,12 @@ public static class CoinPocketHelper
 		if (unLabelledCoins is { })
 		{
 			pockets.Add(new(UnlabelledFundsText, unLabelledCoins));
+		}
+
+		var semiPrivateCoins = new CoinsView(allCoins.Where(x => x.HdPubKey.AnonymitySet > 1 && x.HdPubKey.AnonymitySet < privateAnonSetThreshold));
+		if (semiPrivateCoins.Any())
+		{
+			pockets.Add(new(SemiPrivateFundsText, semiPrivateCoins));
 		}
 
 		var privateCoins = new CoinsView(allCoins.Where(x => x.HdPubKey.AnonymitySet >= privateAnonSetThreshold));
