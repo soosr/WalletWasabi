@@ -96,7 +96,7 @@
                     <c:TagControl.Background>
                       <Binding Path="IsHighlighted">
                         <Binding.Converter>
-                          <converters:BoolToBrushConverter TrueBrush="#22B161" />
+                          <converters:BoolToBrushConverter TrueBrush="#22B161e" />
                         </Binding.Converter>
                       </Binding>
                     </c:TagControl.Background>

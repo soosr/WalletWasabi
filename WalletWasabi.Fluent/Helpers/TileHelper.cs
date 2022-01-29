@@ -35,7 +35,7 @@ public static class TileHelper
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
 
-				new PrivacyControlTileViewModel(walletViewModel, balanceChanged)
+				new WalletBalanceChartTileViewModel(walletViewModel.History)
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
@@ -46,7 +46,7 @@ public static class TileHelper
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
 
-				new WalletBalanceChartTileViewModel(walletViewModel.History)
+				new PrivacyControlTileViewModel(walletViewModel, balanceChanged)
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{

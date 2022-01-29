@@ -1,12 +1,15 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Threading;
 using System.Windows.Input;
 using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
@@ -24,6 +27,9 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 	[AutoNotify] private IList<(string color, double percentShare)>? _testDataPoints;
 	[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
 	[AutoNotify] private string _percentText;
+	[AutoNotify] private decimal[] _outputsData;
+	[AutoNotify] private decimal[] _inputsData;
+
 
 	public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
@@ -84,6 +90,27 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 				StopBoostAnimation();
 			}
 		});
+
+		var updater = Services.HostedServices.Get<RoundStateUpdater>();
+
+		updater.CreateRoundAwaiter(state =>
+		{
+			Console.WriteLine($"State: {state.Phase}");
+			Console.WriteLine($"Inputs: {state.CoinjoinState.Inputs.Count}");
+			Console.WriteLine($"Outputs: {state.CoinjoinState.Outputs.Count}");
+
+			if (state.CoinjoinState.Inputs.Count > 0)
+			{
+				InputsData = ScaleValues(state.CoinjoinState.Inputs);
+			}
+
+			if (state.CoinjoinState.Outputs.Count > 0)
+			{
+				OutputsData = ScaleValues(state.CoinjoinState.Outputs);
+			}
+
+			return false;
+		}, CancellationToken.None);
 	}
 
 	public ICommand BoostPrivacyCommand { get; }
@@ -106,6 +133,37 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 	{
 		ShowBoostingAnimation = false;
 		_animationTimer.IsEnabled = false;
+	}
+
+	private static decimal Scale(decimal value , decimal min, decimal max, decimal minScale, decimal maxScale)
+	{
+		return minScale + (value - min)/(max-min) * (maxScale - minScale);
+	}
+
+	private decimal[] ScaleValues(ImmutableList<Coin> coins)
+	{
+		var max = coins.Select(x=>x.Amount).Max()?.ToDecimal(MoneyUnit.BTC);
+		var min = coins.Select(x=>x.Amount).Min()?.ToDecimal(MoneyUnit.BTC);
+
+		if(max is { } && min is { })
+		{
+			return coins.Select(x => Scale(x.Amount.ToDecimal(MoneyUnit.BTC), min.Value, max.Value, 0, 1)).ToArray();
+		}
+
+		return Array.Empty<decimal>();
+	}
+
+	private decimal[] ScaleValues(ImmutableList<TxOut> coins)
+	{
+		var max = coins.Select(x=>x.Value).Max()?.ToDecimal(MoneyUnit.BTC);
+		var min = coins.Select(x=>x.Value).Min()?.ToDecimal(MoneyUnit.BTC);
+
+		if (max is { } && min is { })
+		{
+			return coins.Select(x => Scale(x.Value.ToDecimal(MoneyUnit.BTC), min.Value, max.Value, 0, 1)).ToArray();
+		}
+
+		return Array.Empty<decimal>();
 	}
 
 	protected override void OnActivated(CompositeDisposable disposables)
