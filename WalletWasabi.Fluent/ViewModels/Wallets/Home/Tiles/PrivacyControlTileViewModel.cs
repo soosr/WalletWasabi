@@ -8,6 +8,7 @@ using System.Windows.Input;
 using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
@@ -142,28 +143,34 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 
 	private decimal[] ScaleValues(ImmutableList<Coin> coins)
 	{
-		var max = coins.Select(x=>x.Amount).Max()?.ToDecimal(MoneyUnit.BTC);
-		var min = coins.Select(x=>x.Amount).Min()?.ToDecimal(MoneyUnit.BTC);
+		var logCoins = coins.Select(x => Math.Abs(Math.Log((double)x.Amount.ToDecimal(MoneyUnit.BTC)))).ToArray();
 
-		if(max is { } && min is { })
-		{
-			return coins.Select(x => Scale(x.Amount.ToDecimal(MoneyUnit.BTC), min.Value, max.Value, 0, 1)).ToArray();
-		}
+		var yAxisValuesLogScaledMax = logCoins.Max();
 
-		return Array.Empty<decimal>();
+		var yAxisScaler = new StraightLineFormula();
+		yAxisScaler.CalculateFrom(yAxisValuesLogScaledMax, 0, 0, 1);
+
+		var yAxisValuesScaled = logCoins
+			.Select(y => yAxisScaler.GetYforX(y))
+			.ToList();
+
+		return yAxisValuesScaled.Select(x=>(decimal)x).ToArray();
 	}
 
 	private decimal[] ScaleValues(ImmutableList<TxOut> coins)
 	{
-		var max = coins.Select(x=>x.Value).Max()?.ToDecimal(MoneyUnit.BTC);
-		var min = coins.Select(x=>x.Value).Min()?.ToDecimal(MoneyUnit.BTC);
+		var logCoins = coins.Select(x => Math.Abs(Math.Log((double)x.Value.ToDecimal(MoneyUnit.BTC)))).ToArray();
 
-		if (max is { } && min is { })
-		{
-			return coins.Select(x => Scale(x.Value.ToDecimal(MoneyUnit.BTC), min.Value, max.Value, 0, 1)).ToArray();
-		}
+		var yAxisValuesLogScaledMax = logCoins.Max();
 
-		return Array.Empty<decimal>();
+		var yAxisScaler = new StraightLineFormula();
+		yAxisScaler.CalculateFrom(yAxisValuesLogScaledMax, 0, 0, 1);
+
+		var yAxisValuesScaled = logCoins
+			.Select(y => yAxisScaler.GetYforX(y))
+			.ToList();
+
+		return yAxisValuesScaled.Select(x=>(decimal)x).ToArray();
 	}
 
 	protected override void OnActivated(CompositeDisposable disposables)

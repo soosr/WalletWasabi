@@ -14,8 +14,8 @@ public class RoundVisualiser : Control
 	private IPen _linePen;
 	private IPen _outputsPen;
 
-	private IBrush _inputsBrush = SolidColorBrush.Parse("#7FF7C01F");
-	private IBrush _outPutsBrush = SolidColorBrush.Parse("#7F26C01F");
+	private IBrush _inputsBrush = SolidColorBrush.Parse("#4FF7C01F");
+	private IBrush _outPutsBrush = SolidColorBrush.Parse("#4F26C01F");
 
 	public static readonly DirectProperty<RoundVisualiser, decimal[]> InputsProperty =
 		AvaloniaProperty.RegisterDirect<RoundVisualiser, decimal[]>(
@@ -50,9 +50,9 @@ public class RoundVisualiser : Control
         {
             base.Render(context);
 
-            if (Inputs != null)
+            if (Inputs != null && Outputs != null)
             {
-	            var length = Inputs.Length;
+	            var length = Inputs.Length + Outputs.Length;
 
 	            var gaps = length + 1;
 
@@ -69,30 +69,13 @@ public class RoundVisualiser : Control
 
 	            var x = binStroke / 2 + gapSize;
 
-	            for (var i = 0; i < length; i++)
+	            for (var i = 0; i < Inputs.Length; i++)
 	            {
 		            context.DrawLine(_linePen, new Point(x, Bounds.Height),
 			            new Point(x,
-				            Bounds.Height * (1 - (double)Inputs[i])));
+				            Bounds.Height * (1 - (double)Inputs[Inputs.Length -1 - i])));
 		            x += binStroke + gapSize;
 	            }
-            }
-
-            if (Outputs != null)
-            {
-	            var length = Outputs.Length;
-
-	            var gaps = length + 1;
-
-	            var gapSize = 1.0;
-
-	            if ((gaps * gapSize) > Bounds.Width)
-	            {
-		            gapSize = 1;
-	            }
-
-	            var binStroke = (Bounds.Width - gaps * gapSize) / (length);
-	            binStroke = Math.Floor(binStroke);
 
 	            if (_lastOutputsStrokeThickness != binStroke)
 	            {
@@ -100,15 +83,15 @@ public class RoundVisualiser : Control
 		            _outputsPen = new Pen(_outPutsBrush, _lastOutputsStrokeThickness);
 	            }
 
-	            var x = binStroke / 2 + gapSize;
-
-	            for (var i = 0; i < length; i++)
+	            for (var i = 0; i < Outputs.Length; i++)
 	            {
 		            context.DrawLine(_outputsPen, new Point(x, Bounds.Height),
 			            new Point(x,
-				            Bounds.Height * (1 - (double)Outputs[length - 1 - i])));
+				            Bounds.Height * (1 - (double)Outputs[i])));
 		            x += binStroke + gapSize;
 	            }
             }
+
+
         }
 }
