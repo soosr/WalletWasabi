@@ -24,9 +24,9 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 
 		Profiles = new()
 		{
+			privateProfile,
 			new SpeedyCoinJoinProfile(),
-			new EconomyCoinJoinProfile(),
-			privateProfile
+			new EconomyCoinJoinProfile()
 		};
 
 		_selectedProfile = privateProfile;
