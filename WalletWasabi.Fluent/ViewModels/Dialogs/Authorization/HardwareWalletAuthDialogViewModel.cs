@@ -52,6 +52,7 @@ public partial class HardwareWalletAuthDialogViewModel : AuthorizationDialogBase
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
+			await AuthorizationFailedAsync();
 			return false;
 		}
 	}

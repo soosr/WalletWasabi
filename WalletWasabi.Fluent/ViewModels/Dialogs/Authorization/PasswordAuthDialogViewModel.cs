@@ -25,13 +25,21 @@ public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 		EnableBack = false;
 	}
 
-	protected override void OnDialogClosed()
+	protected override void OnNavigatedFrom(bool isInHistory)
 	{
+		base.OnNavigatedFrom(isInHistory);
 		Password = "";
 	}
 
 	protected override async Task<bool> Authorize()
 	{
-		return await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, Password, out _));
+		var result = await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, Password, out _));
+
+		if (!result)
+		{
+			await AuthorizationFailedAsync();
+		}
+
+		return result;
 	}
 }

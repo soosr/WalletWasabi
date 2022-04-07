@@ -11,11 +11,20 @@ public abstract class AuthorizationDialogBase : DialogViewModelBase<bool>
 		NextCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			var result = await Authorize();
-			Close(DialogResultKind.Normal, result);
+
+			if (result)
+			{
+				Close(DialogResultKind.Normal, result);
+			}
 		});
 
 		EnableAutoBusyOn(NextCommand);
 	}
 
 	protected abstract Task<bool> Authorize();
+
+	protected async Task AuthorizationFailedAsync()
+	{
+		await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "", NavigationTarget.CompactDialogScreen);
+	}
 }
