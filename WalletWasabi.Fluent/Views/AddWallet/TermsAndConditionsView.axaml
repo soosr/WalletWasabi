@@ -5,10 +5,10 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
+             xmlns:legalDocs="clr-namespace:WalletWasabi.Fluent.ViewModels.LegalDocs"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:CompileBindings="True"
-             x:DataType="vm:TermsAndConditionsViewModel"
+             x:DataType="legalDocs:TermsAndConditionsViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.TermsAndConditionsView">
   <c:ContentArea Title="{Binding Title}"
                  Caption="To continue using Wasabi, please accept the terms and conditions"

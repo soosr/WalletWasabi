@@ -1,6 +1,6 @@
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
-namespace WalletWasabi.Fluent.ViewModels.AddWallet;
+namespace WalletWasabi.Fluent.ViewModels.LegalDocs;
 
 [NavigationMetaData(
 	Title = "Legal Document",

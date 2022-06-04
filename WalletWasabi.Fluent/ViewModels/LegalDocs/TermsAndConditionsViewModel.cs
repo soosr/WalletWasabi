@@ -3,7 +3,7 @@ using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
-namespace WalletWasabi.Fluent.ViewModels.AddWallet;
+namespace WalletWasabi.Fluent.ViewModels.LegalDocs;
 
 [NavigationMetaData(Title = "Terms and conditions")]
 public partial class TermsAndConditionsViewModel : DialogViewModelBase<bool>
