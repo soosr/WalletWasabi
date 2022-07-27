@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using WalletWasabi.Logging;
@@ -35,7 +36,7 @@ public class RequestResponseLoggingMiddleware
 		await _next(context);
 
 		//Format the response from the server
-		var response = FormatResponse(context.Response);
+		var response = await FormatResponse(context.Response);
 
 		// Log WabiSabi related stuff:
 		if (request.Path.Contains("wabisabi", StringComparison.OrdinalIgnoreCase))
@@ -58,12 +59,17 @@ public class RequestResponseLoggingMiddleware
 		return new ProcessedRequest(request.Path, Convert.ToInt32(request.ContentLength));
 	}
 
-	private static ProcessedResponse FormatResponse(HttpResponse response)
+	private async Task<ProcessedResponse> FormatResponse(HttpResponse response)
 	{
 		//We need to read the response stream from the beginning...
 		response.Body.Seek(0, SeekOrigin.Begin);
 
-		//Return the string for the response, including the status code (e.g. 200, 404, 401, etc.)
-		return new ProcessedResponse(response.StatusCode, Convert.ToInt32(response.ContentLength));
+		string text = await new StreamReader(response.Body).ReadToEndAsync();
+		var size = Encoding.Unicode.GetByteCount(text);
+
+		//We need to reset the reader for the response so that the client can read it.
+		response.Body.Seek(0, SeekOrigin.Begin);
+
+		return new ProcessedResponse(response.StatusCode, size);
 	}
 }
