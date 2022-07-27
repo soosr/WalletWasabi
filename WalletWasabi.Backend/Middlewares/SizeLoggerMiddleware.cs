@@ -1,18 +1,24 @@
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using NBitcoin;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi;
 
 namespace WalletWasabi.Backend.Middlewares;
 
 public record ProcessedRequest(string Path, long Size);
 
-public record ProcessedResponse(int StatusCode, long Size);
+public record ProcessedResponse(long Size);
 
 public class RequestResponseLoggingMiddleware
 {
 	private readonly RequestDelegate _next;
+
+	private const string MeasurementFilePath = @"C:\Users\Roland\AppData\Roaming\WalletWasabi\Backend\measurement.csv";
+	private readonly string _fileHeader = @$"MaxRegistrableAmount (BTC),API,request size (Byte),response size (Byte){Environment.NewLine}";
 
 	public RequestResponseLoggingMiddleware(RequestDelegate next)
 	{
@@ -41,7 +47,16 @@ public class RequestResponseLoggingMiddleware
 		// Log WabiSabi related stuff:
 		if (request.Path.Contains("wabisabi", StringComparison.OrdinalIgnoreCase))
 		{
-			Logger.LogDebug($"Request  [{request.Path}] [{request.Size} Byte] - Response [statuscode: {response.StatusCode}] [{response.Size} Byte]");
+			var maxSuggestedAmount = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice);
+			Logger.LogDebug($"{nameof(ProtocolConstants.MaxAmountPerAlice)}:{maxSuggestedAmount.ToString(false)} BTC, [{request.Path}] Request[{request.Size} Byte] Response[{response.Size} Byte]");
+
+			if (!File.Exists(MeasurementFilePath))
+			{
+				await File.WriteAllTextAsync(MeasurementFilePath, _fileHeader);
+			}
+
+			var csv = $"{maxSuggestedAmount.ToString(false)},{request.Path.Split("/").Last()},{request.Size},{response.Size}{Environment.NewLine}";
+			await File.AppendAllTextAsync(MeasurementFilePath, csv);
 		}
 
 		//Copy the contents of the new memory stream (which contains the response) to the original stream, which is then returned to the client.
@@ -70,6 +85,6 @@ public class RequestResponseLoggingMiddleware
 		//We need to reset the reader for the response so that the client can read it.
 		response.Body.Seek(0, SeekOrigin.Begin);
 
-		return new ProcessedResponse(response.StatusCode, size);
+		return new ProcessedResponse(size);
 	}
 }
