@@ -14,6 +14,9 @@ public record ProcessedRequest(string Path, long Size);
 
 public record ProcessedResponse(long Size);
 
+/// <summary>
+/// https://github.com/exceptionnotfound/AspNetCoreRequestResponseMiddlewareDemo
+/// </summary>
 public class RequestResponseLoggingMiddleware
 {
 	private readonly RequestDelegate _next;
