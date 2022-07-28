@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using NBitcoin;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi;
 
@@ -17,7 +18,7 @@ public class RequestResponseLoggingMiddleware
 {
 	private readonly RequestDelegate _next;
 
-	private const string MeasurementFilePath = @"C:\Users\Roland\AppData\Roaming\WalletWasabi\Backend\measurement.csv";
+	private readonly string _measurementFilePath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend")),"measurement.csv");
 	private readonly string _fileHeader = @$"MaxRegistrableAmount (BTC),API,request size (Byte),response size (Byte){Environment.NewLine}";
 
 	public RequestResponseLoggingMiddleware(RequestDelegate next)
@@ -50,13 +51,13 @@ public class RequestResponseLoggingMiddleware
 			var maxSuggestedAmount = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice);
 			Logger.LogDebug($"{nameof(ProtocolConstants.MaxAmountPerAlice)}:{maxSuggestedAmount.ToString(false)} BTC, [{request.Path}] Request[{request.Size} Byte] Response[{response.Size} Byte]");
 
-			if (!File.Exists(MeasurementFilePath))
+			if (!File.Exists(_measurementFilePath))
 			{
-				await File.WriteAllTextAsync(MeasurementFilePath, _fileHeader);
+				await File.WriteAllTextAsync(_measurementFilePath, _fileHeader);
 			}
 
 			var csv = $"{maxSuggestedAmount.ToString(false)},{request.Path.Split("/").Last()},{request.Size},{response.Size}{Environment.NewLine}";
-			await File.AppendAllTextAsync(MeasurementFilePath, csv);
+			await File.AppendAllTextAsync(_measurementFilePath, csv);
 		}
 
 		//Copy the contents of the new memory stream (which contains the response) to the original stream, which is then returned to the client.
