@@ -460,9 +460,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			try
 			{
-				var finalTransaction =
-					await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
-				await SendTransactionAsync(finalTransaction);
+				var finalTransaction = await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
+				await Services.TransactionBroadcaster.SendTransactionAsync(finalTransaction);
 				_cancellationTokenSource.Cancel();
 				Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
 			}
@@ -489,11 +488,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget, NavigationMode.Clear);
 
 		return authDialogResult.Result;
-	}
-
-	private async Task SendTransactionAsync(SmartTransaction transaction)
-	{
-		await Services.TransactionBroadcaster.SendTransactionAsync(transaction);
 	}
 
 	private async Task<SmartTransaction> GetFinalTransactionAsync(SmartTransaction transaction,
