@@ -32,7 +32,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
 	private CancellationTokenSource _cancellationTokenSource;
-	[AutoNotify] private BuildTransactionResult? _transaction;
+	[AutoNotify] private BuildTransactionResult _transaction;
 	[AutoNotify] private string _nextButtonText;
 	[AutoNotify] private bool _adjustFeeAvailable;
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
@@ -41,6 +41,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, BitcoinAddress destination, bool isFixedAmount)
 	{
 		_undoHistory = new();
+		_transaction = BuildTransactionResult.Empty(wallet.Network);
 		_wallet = wallet;
 		_info = info;
 		_currentTransactionInfo = info.Clone();
@@ -175,14 +176,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnExportPsbtAsync()
 	{
-		if (Transaction is { })
-		{
-			var saved = await TransactionHelpers.ExportTransactionToBinaryAsync(Transaction);
+		var saved = await TransactionHelpers.ExportTransactionToBinaryAsync(Transaction);
 
-			if (saved)
-			{
-				Navigate().To(new SuccessViewModel("The PSBT has been successfully created."));
-			}
+		if (saved)
+		{
+			Navigate().To(new SuccessViewModel("The PSBT has been successfully created."));
 		}
 	}
 
@@ -520,11 +518,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private void AddToUndoHistory()
 	{
-		if (Transaction is { })
-		{
-			_undoHistory.Push((Transaction, _currentTransactionInfo));
-			CanUndo = true;
-		}
+		_undoHistory.Push((Transaction, _currentTransactionInfo));
+		CanUndo = true;
 	}
 
 	private void CheckChangePocketAvailable(BuildTransactionResult transaction)
