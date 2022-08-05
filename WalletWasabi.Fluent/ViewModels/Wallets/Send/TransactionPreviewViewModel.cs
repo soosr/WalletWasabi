@@ -61,48 +61,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		DisplayedTransactionSummary = CurrentTransactionSummary;
 
-		PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
-			.Subscribe(x =>
-			{
-				if (x is ChangeAvoidanceSuggestionViewModel ca)
-				{
-					UpdateTransaction(PreviewTransactionSummary, ca.TransactionResult);
-				}
-				else
-				{
-					DisplayedTransactionSummary = CurrentTransactionSummary;
-				}
-			});
-
-		PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
-			.Subscribe(x =>
-			{
-				PrivacySuggestions.IsOpen = false;
-				PrivacySuggestions.SelectedSuggestion = null;
-
-				if (x is ChangeAvoidanceSuggestionViewModel ca)
-				{
-					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
-					UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
-				}
-			});
-
-		PrivacySuggestions.WhenAnyValue(x => x.IsOpen)
-			.Subscribe(x =>
-			{
-				if (!x)
-				{
-					DisplayedTransactionSummary = CurrentTransactionSummary;
-				}
-			});
-
-		this.WhenAnyValue(x => x.Transaction)
-			.WhereNotNull()
-			.Throttle(TimeSpan.FromMilliseconds(100))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.DoAsync(async transaction => await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, transaction, _isFixedAmount, _cancellationTokenSource.Token))
-			.Subscribe();
-
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
 
@@ -146,6 +104,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		});
 
 		ChangePocketCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
+
+		SetupObservables();
 	}
 
 	public TransactionSummaryViewModel CurrentTransactionSummary { get; }
@@ -163,6 +123,54 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	public ICommand ChangePocketCommand { get; }
 
 	public ICommand UndoCommand { get; }
+
+	private void SetupObservables()
+	{
+		PrivacySuggestions
+			.WhenAnyValue(x => x.PreviewSuggestion)
+			.Subscribe(x =>
+			{
+				if (x is ChangeAvoidanceSuggestionViewModel ca)
+				{
+					UpdateTransaction(PreviewTransactionSummary, ca.TransactionResult);
+				}
+				else
+				{
+					DisplayedTransactionSummary = CurrentTransactionSummary;
+				}
+			});
+
+		PrivacySuggestions
+			.WhenAnyValue(x => x.SelectedSuggestion)
+			.Subscribe(x =>
+			{
+				PrivacySuggestions.IsOpen = false;
+				PrivacySuggestions.SelectedSuggestion = null;
+
+				if (x is ChangeAvoidanceSuggestionViewModel ca)
+				{
+					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
+					UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
+				}
+			});
+
+		PrivacySuggestions
+			.WhenAnyValue(x => x.IsOpen)
+			.Subscribe(x =>
+			{
+				if (!x)
+				{
+					DisplayedTransactionSummary = CurrentTransactionSummary;
+				}
+			});
+
+		this.WhenAnyValue(x => x.Transaction)
+			.WhereNotNull()
+			.Throttle(TimeSpan.FromMilliseconds(100))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.DoAsync(async transaction => await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, transaction, _isFixedAmount, _cancellationTokenSource.Token))
+			.Subscribe();
+	}
 
 	private async Task ShowAdvancedDialogAsync()
 	{
