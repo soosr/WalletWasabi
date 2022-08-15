@@ -26,9 +26,9 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 
 	private async Task NavigationOperationAsync(T? oldPage, bool oldInStack, T? newPage, bool newInStack)
 	{
-		if (_operationsEnabled)
+		if (_operationsEnabled && oldPage is { })
 		{
-			oldPage?.OnNavigatedFrom(oldInStack);
+			await oldPage.OnNavigatedFromAsync(oldInStack);
 		}
 
 		CurrentPage = newPage;
@@ -90,7 +90,7 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 			{
 				if (item is INavigatable navigatable)
 				{
-					navigatable.OnNavigatedFrom(false);
+					await navigatable.OnNavigatedFromAsync(false);
 				}
 
 				OnPopped(item);

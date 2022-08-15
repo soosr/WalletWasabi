@@ -101,9 +101,9 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 	}
 
-	protected override void OnNavigatedFrom(bool isInHistory)
+	protected override async Task OnNavigatedFromAsync(bool isInHistory)
 	{
-		base.OnNavigatedFrom(isInHistory);
+		await base.OnNavigatedFromAsync(isInHistory);
 		if (!isInHistory)
 		{
 			_confirmationWordsSourceList.Dispose();

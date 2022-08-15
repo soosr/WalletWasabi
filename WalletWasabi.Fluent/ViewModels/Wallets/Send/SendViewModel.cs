@@ -316,9 +316,9 @@ public partial class SendViewModel : RoutableViewModel
 		await base.OnNavigatedToAsync(inHistory, disposables);
 	}
 
-	protected override void OnNavigatedFrom(bool isInHistory)
+	protected override async Task OnNavigatedFromAsync(bool isInHistory)
 	{
-		base.OnNavigatedFrom(isInHistory);
+		await base.OnNavigatedFromAsync(isInHistory);
 
 		if (!isInHistory && _coinJoinManager is { } coinJoinManager)
 		{

@@ -6,5 +6,5 @@ public interface INavigatable
 {
 	Task OnNavigatedToAsync(bool isInHistory);
 
-	void OnNavigatedFrom(bool isInHistory);
+	Task OnNavigatedFromAsync(bool isInHistory);
 }

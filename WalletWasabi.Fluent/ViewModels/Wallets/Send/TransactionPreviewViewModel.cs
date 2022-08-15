@@ -421,7 +421,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 	}
 
-	protected override void OnNavigatedFrom(bool isInHistory)
+	protected override async Task OnNavigatedFromAsync(bool isInHistory)
 	{
 		if (!isInHistory)
 		{
@@ -430,7 +430,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on cancel, so the user can undo the optimization.
 		}
 
-		base.OnNavigatedFrom(isInHistory);
+		await base.OnNavigatedFromAsync(isInHistory);
 
 		DisplayedTransactionSummary = null;
 	}

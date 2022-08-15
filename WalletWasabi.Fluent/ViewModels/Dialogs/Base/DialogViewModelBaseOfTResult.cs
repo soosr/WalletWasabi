@@ -33,14 +33,14 @@ public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
 		});
 	}
 
-	protected override void OnNavigatedFrom(bool isInHistory)
+	protected override async Task OnNavigatedFromAsync(bool isInHistory)
 	{
 		if (!isInHistory)
 		{
 			Close(DialogResultKind.Cancel);
 		}
 
-		base.OnNavigatedFrom(isInHistory);
+		await base.OnNavigatedFromAsync(isInHistory);
 	}
 
 	private void OnIsDialogOpenChanged(bool dialogState)

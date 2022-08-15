@@ -70,9 +70,9 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 		}
 	}
 
-	protected override void OnNavigatedFrom(bool isInHistory)
+	protected override async Task OnNavigatedFromAsync(bool isInHistory)
 	{
-		base.OnNavigatedFrom(isInHistory);
+		await base.OnNavigatedFromAsync(isInHistory);
 
 		if (!isInHistory)
 		{

@@ -58,9 +58,9 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	{
 	}
 
-	private void DoNavigateFrom(bool isInHistory)
+	private async Task DoNavigateFromAsync(bool isInHistory)
 	{
-		OnNavigatedFrom(isInHistory);
+		await OnNavigatedFromAsync(isInHistory);
 
 		_currentDisposable?.Dispose();
 		_currentDisposable = null;
@@ -115,12 +115,12 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 		await DoNavigateToAsync(isInHistory);
 	}
 
-	void INavigatable.OnNavigatedFrom(bool isInHistory)
+	async Task INavigatable.OnNavigatedFromAsync(bool isInHistory)
 	{
-		DoNavigateFrom(isInHistory);
+		await DoNavigateFromAsync(isInHistory);
 	}
 
-	protected virtual void OnNavigatedFrom(bool isInHistory)
+	protected virtual async Task OnNavigatedFromAsync(bool isInHistory)
 	{
 	}
 
