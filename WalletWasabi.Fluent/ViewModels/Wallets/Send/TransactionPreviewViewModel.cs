@@ -402,7 +402,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 		else
 		{
-			Navigate().BackAsync();
+			await Navigate().BackAsync();
 		}
 	}
 

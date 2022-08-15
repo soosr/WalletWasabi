@@ -11,6 +11,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Hwi;
 using WalletWasabi.Logging;
@@ -120,11 +121,11 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		Observable
 			.FromEventPattern(_wallet.TransactionProcessor, nameof(_wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ =>
+			.SubscribeAsync(async _ =>
 			{
 				if (_wallet.KeyManager.GetKeys(x => x == _model && x.KeyState == KeyState.Used).Any())
 				{
-					Navigate().BackAsync();
+					await Navigate().BackAsync();
 				}
 			})
 			.DisposeWith(disposables);

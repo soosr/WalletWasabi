@@ -27,8 +27,8 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 
 	protected RoutableViewModel()
 	{
-		BackCommand = ReactiveCommand.Create(() => Navigate().BackAsync());
-		CancelCommand = ReactiveCommand.Create(() => Navigate().ClearAsync());
+		BackCommand = ReactiveCommand.CreateFromTask(async () => await Navigate().BackAsync());
+		CancelCommand = ReactiveCommand.CreateFromTask(async () => await Navigate().ClearAsync());
 	}
 
 	public virtual string IconName { get; protected set; } = "navigation_regular";

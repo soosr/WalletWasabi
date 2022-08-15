@@ -36,7 +36,7 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(device));
 
-		NoCommand = ReactiveCommand.Create(OnNo);
+		NoCommand = ReactiveCommand.CreateFromTask(OnNoAsync);
 
 		EnableAutoBusyOn(NextCommand);
 	}
@@ -69,9 +69,9 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 		}
 	}
 
-	private void OnNo()
+	private async Task OnNoAsync()
 	{
-		Navigate().BackAsync();
+		await Navigate().BackAsync();
 	}
 
 	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)

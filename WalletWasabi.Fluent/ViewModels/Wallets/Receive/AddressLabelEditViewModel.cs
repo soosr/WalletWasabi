@@ -26,12 +26,12 @@ public partial class AddressLabelEditViewModel : RoutableViewModel
 					return labelsCount > 0 || isCurrentTextValid;
 				});
 
-		NextCommand = ReactiveCommand.Create(
-			() =>
+		NextCommand = ReactiveCommand.CreateFromTask(
+			async () =>
 			{
 				hdPubKey.SetLabel(new SmartLabel(SuggestionLabels.Labels), kmToFile: keyManager);
 				owner.InitializeAddresses();
-				Navigate().BackAsync();
+				await Navigate().BackAsync();
 			},
 			canExecute);
 	}

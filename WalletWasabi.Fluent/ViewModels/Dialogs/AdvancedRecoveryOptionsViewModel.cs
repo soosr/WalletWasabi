@@ -44,7 +44,7 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<(Key
 		_accountKeyPath = interactionInput.keyPath.ToString();
 		_minGapLimit = interactionInput.minGapLimit.ToString();
 
-		BackCommand = ReactiveCommand.Create(() => Navigate().BackAsync(), backCommandCanExecute);
+		BackCommand = ReactiveCommand.CreateFromTask(async () => await Navigate().BackAsync(), backCommandCanExecute);
 
 		NextCommand = ReactiveCommand.Create(
 			() => Close(result: (KeyPath.Parse(AccountKeyPath), int.Parse(MinGapLimit))),
