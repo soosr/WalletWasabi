@@ -158,7 +158,7 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAd
 	{
 		await base.OnNavigatedToAsync(isInHistory, disposables);
 
-		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
+		await OnAutoPasteAsync();
 	}
 
 	private void ValidateToField(IValidationErrors errors)

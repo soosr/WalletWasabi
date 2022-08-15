@@ -111,39 +111,36 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 			.Subscribe(estimations => FeeChart.UpdateFeeEstimates(estimations, _transactionInfo.MaximumPossibleFeeRate))
 			.DisposeWith(disposables);
 
-		RxApp.MainThreadScheduler.Schedule(async () =>
+		Dictionary<int, int> feeEstimates;
+		using var cancelTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+
+		try
 		{
-			Dictionary<int, int> feeEstimates;
-			using var cancelTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+			feeEstimates = await TransactionFeeHelper.GetFeeEstimatesWhenReadyAsync(_wallet, cancelTokenSource.Token);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogInfo(ex);
+			await FeeEstimationsAreNotAvailableAsync();
+			return;
+		}
 
-			try
-			{
-				feeEstimates = await TransactionFeeHelper.GetFeeEstimatesWhenReadyAsync(_wallet, cancelTokenSource.Token);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogInfo(ex);
-				await FeeEstimationsAreNotAvailableAsync();
-				return;
-			}
+		FeeChart.UpdateFeeEstimates(feeEstimates, _transactionInfo.MaximumPossibleFeeRate);
 
-			FeeChart.UpdateFeeEstimates(feeEstimates, _transactionInfo.MaximumPossibleFeeRate);
+		if (_transactionInfo.FeeRate != FeeRate.Zero)
+		{
+			FeeChart.InitCurrentConfirmationTarget(_transactionInfo.FeeRate);
+		}
 
-			if (_transactionInfo.FeeRate != FeeRate.Zero)
-			{
-				FeeChart.InitCurrentConfirmationTarget(_transactionInfo.FeeRate);
-			}
+		if (_isSilent)
+		{
+			_transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
 
-			if (_isSilent)
-			{
-				_transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
-
-				OnNext();
-			}
-			else
-			{
-				IsBusy = false;
-			}
-		});
+			OnNext();
+		}
+		else
+		{
+			IsBusy = false;
+		}
 	}
 }

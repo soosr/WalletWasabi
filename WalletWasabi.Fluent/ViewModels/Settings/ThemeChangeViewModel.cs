@@ -21,11 +21,8 @@ public partial class ThemeChangeViewModel : RoutableViewModel
 	{
 		await base.OnNavigatedToAsync(isInHistory, disposables);
 
-		RxApp.MainThreadScheduler.Schedule(async () =>
-		{
-			await Task.Delay(500);
-			ThemeHelper.ApplyTheme(_newTheme);
-			Navigate().ClearAsync();
-		});
+		await Task.Delay(500);
+		ThemeHelper.ApplyTheme(_newTheme);
+		await Navigate().ClearAsync();
 	}
 }

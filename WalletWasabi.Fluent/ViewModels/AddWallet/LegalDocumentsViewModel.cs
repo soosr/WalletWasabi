@@ -39,26 +39,23 @@ public partial class LegalDocumentsViewModel : RoutableViewModel
 			return;
 		}
 
-		RxApp.MainThreadScheduler.Schedule(async () =>
+		try
 		{
-			try
-			{
-				IsBusy = true;
-				using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(30));
-				var document = await Services.LegalChecker.WaitAndGetLatestDocumentAsync(timeout.Token);
-				Content = document.Content;
-			}
-			catch (Exception ex)
-			{
-				var caption = "Failed to get Legal documents.";
-				Logger.LogError(caption, ex);
-				await ShowErrorAsync(Title, message: caption, caption: "");
-				Navigate().BackAsync();
-			}
-			finally
-			{
-				IsBusy = false;
-			}
-		});
+			IsBusy = true;
+			using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(30));
+			var document = await Services.LegalChecker.WaitAndGetLatestDocumentAsync(timeout.Token);
+			Content = document.Content;
+		}
+		catch (Exception ex)
+		{
+			var caption = "Failed to get Legal documents.";
+			Logger.LogError(caption, ex);
+			await ShowErrorAsync(Title, message: caption, caption: "");
+			await Navigate().BackAsync();
+		}
+		finally
+		{
+			IsBusy = false;
+		}
 	}
 }

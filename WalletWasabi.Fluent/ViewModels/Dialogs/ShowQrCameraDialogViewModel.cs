@@ -66,7 +66,7 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 
 		if (!isInHistory)
 		{
-			RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StartAsync(CancellationTokenSource.Token));
+			await _qrReader.StartAsync(CancellationTokenSource.Token);
 		}
 	}
 
@@ -76,7 +76,7 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 
 		if (!isInHistory)
 		{
-			RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopAsync(CancellationToken.None));
+			await _qrReader.StopAsync(CancellationToken.None);
 		}
 	}
 }

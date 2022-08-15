@@ -309,7 +309,7 @@ public partial class SendViewModel : RoutableViewModel
 			.Subscribe(x => ExchangeRate = x)
 			.DisposeWith(disposables);
 
-		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
+		await OnAutoPasteAsync();
 
 		Balance.Activate(disposables);
 
