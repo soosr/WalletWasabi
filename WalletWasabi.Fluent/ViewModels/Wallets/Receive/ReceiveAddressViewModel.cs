@@ -113,9 +113,9 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		}
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		Observable
 			.FromEventPattern(_wallet.TransactionProcessor, nameof(_wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
@@ -124,7 +124,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 			{
 				if (_wallet.KeyManager.GetKeys(x => x == _model && x.KeyState == KeyState.Used).Any())
 				{
-					Navigate().Back();
+					Navigate().BackAsync();
 				}
 			})
 			.DisposeWith(disposables);

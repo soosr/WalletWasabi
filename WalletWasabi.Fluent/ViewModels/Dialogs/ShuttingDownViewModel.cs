@@ -1,6 +1,7 @@
 using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -16,7 +17,7 @@ public partial class ShuttingDownViewModel : RoutableViewModel
 		NextCommand = CancelCommand;
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
 		Observable.Interval(TimeSpan.FromSeconds(3))
 				  .ObserveOn(RxApp.MainThreadScheduler)
@@ -24,7 +25,7 @@ public partial class ShuttingDownViewModel : RoutableViewModel
 				  {
 					  if (_applicationViewModel.CanShutdown())
 					  {
-						  Navigate().Clear();
+						  Navigate().ClearAsync();
 						  _applicationViewModel.ShutDown();
 					  }
 				  })

@@ -6,6 +6,7 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -28,9 +29,9 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 
 	private CancellationTokenSource CancellationTokenSource { get; } = new();
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		Observable.FromEventPattern<Bitmap>(_qrReader, nameof(_qrReader.NewImageArrived))
 			.ObserveOn(RxApp.MainThreadScheduler)

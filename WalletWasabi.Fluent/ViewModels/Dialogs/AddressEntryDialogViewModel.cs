@@ -154,9 +154,9 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAd
 		return result;
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
 	}

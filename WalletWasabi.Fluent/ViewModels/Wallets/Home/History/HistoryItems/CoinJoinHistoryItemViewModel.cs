@@ -40,8 +40,8 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 			IncomingAmount = amount;
 		}
 
-		ShowDetailsCommand = ReactiveCommand.Create(() =>
-			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
+		ShowDetailsCommand = ReactiveCommand.CreateFromTask(async () =>
+			await RoutableViewModel.Navigate(NavigationTarget.DialogScreen).ToAsync(
 				new CoinJoinDetailsViewModel(this, updateTrigger)));
 
 		DateString = $"{Date.ToLocalTime():MM/dd/yyyy HH:mm}";

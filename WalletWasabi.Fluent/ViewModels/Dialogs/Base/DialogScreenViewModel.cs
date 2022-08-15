@@ -50,7 +50,7 @@ public partial class DialogScreenViewModel : TargettedNavigationStack
 	private void CloseScreen()
 	{
 		var navStack = Stack.ToList();
-		Clear();
+		ClearAsync();
 
 		CloseDialogs(navStack);
 	}

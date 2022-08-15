@@ -29,7 +29,7 @@ public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
 		CancelCommand = ReactiveCommand.Create(() =>
 		{
 			Close(DialogResultKind.Cancel);
-			Navigate().Clear();
+			Navigate().ClearAsync();
 		});
 	}
 

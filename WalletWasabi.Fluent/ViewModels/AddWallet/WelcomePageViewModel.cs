@@ -1,5 +1,6 @@
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
@@ -21,7 +22,7 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 
 		SelectedIndex = 0;
-		NextCommand = ReactiveCommand.Create(OnNext);
+		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync);
 		CanGoBack = this.WhenAnyValue(x => x.SelectedIndex, i => i > 0);
 		BackCommand = ReactiveCommand.Create(() => SelectedIndex--, CanGoBack);
 
@@ -41,7 +42,7 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 
 	public IObservable<bool> CanGoBack { get; }
 
-	private void OnNext()
+	private async Task OnNextAsync()
 	{
 		if (SelectedIndex < NumberOfPages - 1)
 		{
@@ -49,7 +50,7 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 		}
 		else if (!Services.WalletManager.HasWallet())
 		{
-			Navigate().To(_addWalletPage);
+			await Navigate().ToAsync(_addWalletPage);
 		}
 		else
 		{

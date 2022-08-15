@@ -91,11 +91,11 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 		}
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
 		IsBusy = true;
 
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		var feeProvider = _wallet.FeeProvider;
 

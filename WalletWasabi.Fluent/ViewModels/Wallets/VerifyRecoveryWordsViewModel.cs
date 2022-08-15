@@ -86,7 +86,7 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 
 				if (_wallet.KeyManager.ExtPubKey == recovered.ExtPubKey)
 				{
-					Navigate().To(new SuccessViewModel("Your Recovery Words have been verified and are correct."),
+					await Navigate().ToAsync(new SuccessViewModel("Your Recovery Words have been verified and are correct."),
 						NavigationMode.Clear);
 				}
 				else

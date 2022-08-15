@@ -27,8 +27,8 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 
 	protected RoutableViewModel()
 	{
-		BackCommand = ReactiveCommand.Create(() => Navigate().Back());
-		CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
+		BackCommand = ReactiveCommand.Create(() => Navigate().BackAsync());
+		CancelCommand = ReactiveCommand.Create(() => Navigate().ClearAsync());
 	}
 
 	public virtual string IconName { get; protected set; } = "navigation_regular";
@@ -42,7 +42,7 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 
 	public ICommand CancelCommand { get; protected set; }
 
-	private void DoNavigateTo(bool isInHistory)
+	private async Task DoNavigateToAsync(bool isInHistory)
 	{
 		if (_currentDisposable is { })
 		{
@@ -51,10 +51,10 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 
 		_currentDisposable = new CompositeDisposable();
 
-		OnNavigatedTo(isInHistory, _currentDisposable);
+		await OnNavigatedToAsync(isInHistory, _currentDisposable);
 	}
 
-	protected virtual void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected virtual async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
 	}
 
@@ -110,9 +110,9 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 		IsActive = true;
 	}
 
-	public void OnNavigatedTo(bool isInHistory)
+	public async Task OnNavigatedToAsync(bool isInHistory)
 	{
-		DoNavigateTo(isInHistory);
+		await DoNavigateToAsync(isInHistory);
 	}
 
 	void INavigatable.OnNavigatedFrom(bool isInHistory)
@@ -142,11 +142,11 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	{
 		var dialogTask = dialog.GetDialogResultAsync();
 
-		Navigate(target).To(dialog, navigationMode);
+		await Navigate(target).ToAsync(dialog, navigationMode);
 
 		var result = await dialogTask;
 
-		Navigate(target).Back();
+		await Navigate(target).BackAsync();
 
 		return result;
 	}

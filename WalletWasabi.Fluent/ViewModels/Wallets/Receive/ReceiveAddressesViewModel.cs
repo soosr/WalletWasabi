@@ -93,9 +93,9 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 	public FlatTreeDataGridSource<AddressViewModel> Source { get; }
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		Observable
 			.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
@@ -146,8 +146,8 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 		}
 	}
 
-	public void NavigateToAddressEdit(HdPubKey hdPubKey, KeyManager keyManager)
+	public async Task NavigateToAddressEditAsync(HdPubKey hdPubKey, KeyManager keyManager)
 	{
-		Navigate(NavigationTarget.CompactDialogScreen).To(new AddressLabelEditViewModel(this, hdPubKey, keyManager));
+		await Navigate(NavigationTarget.CompactDialogScreen).ToAsync(new AddressLabelEditViewModel(this, hdPubKey, keyManager));
 	}
 }

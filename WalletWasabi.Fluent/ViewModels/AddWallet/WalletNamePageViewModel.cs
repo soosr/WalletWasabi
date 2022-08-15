@@ -52,15 +52,15 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		switch (creationOption)
 		{
 			case WalletCreationOption.AddNewWallet:
-				Navigate().To(new RecoveryWordsViewModel(new Mnemonic(Wordlist.English, WordCount.Twelve), walletName));
+				await Navigate().ToAsync(new RecoveryWordsViewModel(new Mnemonic(Wordlist.English, WordCount.Twelve), walletName));
 				break;
 
 			case WalletCreationOption.ConnectToHardwareWallet:
-				Navigate().To(new ConnectHardwareWalletViewModel(walletName));
+				await Navigate().ToAsync(new ConnectHardwareWalletViewModel(walletName));
 				break;
 
 			case WalletCreationOption.RecoverWallet:
-				Navigate().To(new RecoverWalletViewModel(walletName));
+				await Navigate().ToAsync(new RecoverWalletViewModel(walletName));
 				break;
 
 			case WalletCreationOption.ImportWallet when _importFilePath is { }:
@@ -77,7 +77,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		try
 		{
 			var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
-			Navigate().To(new AddedWalletPageViewModel(keyManager));
+			await Navigate().ToAsync(new AddedWalletPageViewModel(keyManager));
 		}
 		catch (Exception ex)
 		{
@@ -95,9 +95,9 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		}
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		var enableCancel = Services.WalletManager.HasWallet();
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);

@@ -6,6 +6,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Logging;
 using System.Windows.Input;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
@@ -50,12 +51,11 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 
 		this.WhenAnyValue(x => x.DarkModeEnabled)
 			.Skip(1)
-			.Subscribe(
-				x =>
-				{
-					Services.UiConfig.DarkModeEnabled = x;
-					Navigate(NavigationTarget.CompactDialogScreen).To(new ThemeChangeViewModel(x ? Theme.Dark : Theme.Light));
-				});
+			.SubscribeAsync(async x =>
+			{
+				Services.UiConfig.DarkModeEnabled = x;
+				await Navigate(NavigationTarget.CompactDialogScreen).ToAsync(new ThemeChangeViewModel(x ? Theme.Dark : Theme.Light));
+			});
 
 		this.WhenAnyValue(x => x.AutoCopy)
 			.ObserveOn(RxApp.TaskpoolScheduler)

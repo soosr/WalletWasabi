@@ -29,7 +29,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		NextCommand = CancelCommand;
 
 		VerifyRecoveryWordsCommand =
-			ReactiveCommand.Create(() => Navigate().To(new VerifyRecoveryWordsViewModel(_wallet)));
+			ReactiveCommand.CreateFromTask(async () => await Navigate().ToAsync(new VerifyRecoveryWordsViewModel(_wallet)));
 
 		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 			.Skip(1)

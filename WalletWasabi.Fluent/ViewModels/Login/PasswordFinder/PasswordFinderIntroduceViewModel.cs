@@ -29,7 +29,7 @@ public partial class PasswordFinderIntroduceViewModel : RoutableViewModel
 		if (dialogResult.Result is { } password)
 		{
 			var options = new PasswordFinderOptions(wallet, password);
-			Navigate().To(new SelectCharsetViewModel(options));
+			await Navigate().ToAsync(new SelectCharsetViewModel(options));
 		}
 	}
 }

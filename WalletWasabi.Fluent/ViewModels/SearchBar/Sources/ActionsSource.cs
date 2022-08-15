@@ -52,7 +52,7 @@ public class ActionsSource : ISearchItemSource
 			}
 			else
 			{
-				RoutableViewModel.Navigate(vm.DefaultTarget).To(vm);
+				await RoutableViewModel.Navigate(vm.DefaultTarget).ToAsync(vm);
 			}
 		};
 	}

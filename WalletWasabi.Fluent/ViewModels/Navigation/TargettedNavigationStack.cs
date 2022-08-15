@@ -9,11 +9,11 @@ public static class NavigationExtensions
 		this TargettedNavigationStack stack,
 		DialogViewModelBase<T> dialog)
 	{
-		stack.To(dialog);
+		await stack.ToAsync(dialog);
 
 		var result = await dialog.GetDialogResultAsync();
 
-		stack.Back();
+		await stack.BackAsync();
 
 		return result;
 	}
@@ -28,15 +28,15 @@ public class TargettedNavigationStack : NavigationStack<RoutableViewModel>
 		_target = target;
 	}
 
-	public override void Clear()
+	public override async Task ClearAsync()
 	{
 		if (_target == NavigationTarget.HomeScreen)
 		{
-			base.Clear(true);
+			await base.ClearAsync(true);
 		}
 		else
 		{
-			base.Clear();
+			await base.ClearAsync();
 		}
 	}
 

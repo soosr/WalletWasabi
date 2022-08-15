@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
@@ -23,7 +24,7 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 	{
 	}
 
-	private void NavigationOperation(T? oldPage, bool oldInStack, T? newPage, bool newInStack)
+	private async Task NavigationOperationAsync(T? oldPage, bool oldInStack, T? newPage, bool newInStack)
 	{
 		if (_operationsEnabled)
 		{
@@ -44,7 +45,7 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 
 		if (_operationsEnabled && newPage is { })
 		{
-			newPage.OnNavigatedTo(newInStack);
+			await newPage.OnNavigatedToAsync(newInStack);
 		}
 
 		UpdateCanNavigateBack();
@@ -52,12 +53,12 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 
 	protected IEnumerable<T> Stack => _backStack;
 
-	public virtual void Clear()
+	public virtual async Task ClearAsync()
 	{
-		Clear(false);
+		await ClearAsync(false);
 	}
 
-	protected virtual void Clear(bool keepRoot)
+	protected virtual async Task ClearAsync(bool keepRoot)
 	{
 		var root = _backStack.Count > 0 ? _backStack.Last() : CurrentPage;
 
@@ -98,10 +99,10 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 			CurrentPage = null;
 		}
 
-		NavigationOperation(oldPage, false, CurrentPage, CurrentPage is { });
+		await NavigationOperationAsync(oldPage, false, CurrentPage, CurrentPage is { });
 	}
 
-	public void BackTo(T viewmodel)
+	public async Task BackToAsync(T viewmodel)
 	{
 		if (CurrentPage == viewmodel)
 		{
@@ -116,21 +117,21 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 			{
 			}
 
-			NavigationOperation(oldPage, false, viewmodel, true);
+			await NavigationOperationAsync(oldPage, false, viewmodel, true);
 		}
 	}
 
-	public void BackTo<TViewModel>() where TViewModel : T
+	public async Task BackToAsync<TViewModel>() where TViewModel : T
 	{
 		var previous = _backStack.Reverse().SingleOrDefault(x => x is TViewModel);
 
 		if (previous is { })
 		{
-			BackTo(previous);
+			await BackToAsync(previous);
 		}
 	}
 
-	public void To(T viewmodel, NavigationMode mode = NavigationMode.Normal)
+	public async Task ToAsync(T viewmodel, NavigationMode mode = NavigationMode.Normal)
 	{
 		var oldPage = CurrentPage;
 
@@ -149,7 +150,7 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 			case NavigationMode.Clear:
 				oldInStack = false;
 				_operationsEnabled = false;
-				Clear();
+				await ClearAsync();
 				_operationsEnabled = true;
 				break;
 
@@ -158,10 +159,10 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 				break;
 		}
 
-		NavigationOperation(oldPage, oldInStack, viewmodel, newInStack);
+		await NavigationOperationAsync(oldPage, oldInStack, viewmodel, newInStack);
 	}
 
-	public void Back()
+	public async Task BackAsync()
 	{
 		if (_backStack.Count > 0)
 		{
@@ -169,11 +170,11 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 
 			CurrentPage = _backStack.Pop();
 
-			NavigationOperation(oldPage, false, CurrentPage, true);
+			await NavigationOperationAsync(oldPage, false, CurrentPage, true);
 		}
 		else
 		{
-			Clear(); // in this case only CurrentPage might be set and Clear will provide correct behavior.
+			await ClearAsync(); // in this case only CurrentPage might be set and Clear will provide correct behavior.
 		}
 	}
 

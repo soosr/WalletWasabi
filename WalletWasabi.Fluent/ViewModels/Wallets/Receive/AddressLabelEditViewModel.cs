@@ -31,7 +31,7 @@ public partial class AddressLabelEditViewModel : RoutableViewModel
 			{
 				hdPubKey.SetLabel(new SmartLabel(SuggestionLabels.Labels), kmToFile: keyManager);
 				owner.InitializeAddresses();
-				Navigate().Back();
+				Navigate().BackAsync();
 			},
 			canExecute);
 	}

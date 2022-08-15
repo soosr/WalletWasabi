@@ -71,12 +71,12 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	private void OnNext()
 	{
-		Navigate().Clear();
+		Navigate().ClearAsync();
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		_updateTrigger
 			.SubscribeAsync(async _ => await UpdateCurrentTransactionAsync())

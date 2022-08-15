@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
 public interface INavigationStack<T> where T : INavigatable
@@ -12,13 +14,13 @@ public interface INavigationStack<T> where T : INavigatable
 	/// </summary>
 	bool CanNavigateBack { get; }
 
-	void To(T viewmodel, NavigationMode mode = NavigationMode.Normal);
+	Task ToAsync(T viewmodel, NavigationMode mode = NavigationMode.Normal);
 
-	void Back();
+	Task BackAsync();
 
-	void BackTo(T viewmodel);
+	Task BackToAsync(T viewmodel);
 
-	void BackTo<TViewModel>() where TViewModel : T;
+	Task BackToAsync<TViewModel>() where TViewModel : T;
 
-	void Clear();
+	Task ClearAsync();
 }

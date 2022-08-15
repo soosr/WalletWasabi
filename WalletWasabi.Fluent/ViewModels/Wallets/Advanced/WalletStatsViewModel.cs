@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
@@ -40,13 +41,13 @@ public partial class WalletStatsViewModel : RoutableViewModel
 
 		UpdateProps();
 
-		NextCommand = ReactiveCommand.Create(() => Navigate().Clear());
+		NextCommand = ReactiveCommand.Create(() => Navigate().ClearAsync());
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		Observable.FromEventPattern(_wallet, nameof(_wallet.WalletRelevantTransactionProcessed))
 			.Subscribe(_ => UpdateProps())

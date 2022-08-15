@@ -70,7 +70,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 	{
 		if (DetectedDevice is { } device)
 		{
-			NavigateToNext(device);
+			NavigateToNextAsync(device);
 			return;
 		}
 
@@ -84,7 +84,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 		if (ExistingWallet is { } && navBar is { })
 		{
 			navBar.SelectedItem = ExistingWallet;
-			Navigate().Clear();
+			Navigate().ClearAsync();
 			ExistingWallet.OpenCommand.Execute(default);
 		}
 	}
@@ -113,7 +113,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 			AbandonedTasks.AddAndClearCompleted(CheckForPassphraseAsync(cts.Token));
 			var result = await HardwareWalletOperationHelpers.DetectAsync(Services.WalletManager.Network, cancel);
 			cts.Cancel();
-			EvaluateDetectionResult(result, cancel);
+			await EvaluateDetectionResultAsync(result, cancel);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
@@ -138,7 +138,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 		}
 	}
 
-	private void EvaluateDetectionResult(HwiEnumerateEntry[] devices, CancellationToken cancel)
+	private async Task EvaluateDetectionResultAsync(HwiEnumerateEntry[] devices, CancellationToken cancel)
 	{
 		if (devices.Length == 0)
 		{
@@ -199,18 +199,18 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 		if (!ConfirmationRequired)
 		{
-			NavigateToNext(DetectedDevice);
+			await NavigateToNextAsync(DetectedDevice);
 		}
 	}
 
-	private void NavigateToNext(HwiEnumerateEntry device)
+	private async Task NavigateToNextAsync(HwiEnumerateEntry device)
 	{
-		Navigate().To(new DetectedHardwareWalletViewModel(WalletName, device));
+		await Navigate().ToAsync(new DetectedHardwareWalletViewModel(WalletName, device));
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		var enableCancel = Services.WalletManager.HasWallet();
 

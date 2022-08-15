@@ -1,4 +1,5 @@
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Controls;
 using ReactiveUI;
@@ -35,8 +36,8 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 		ShowCommand = ReactiveCommand.Create(() => _mainWindowService.Show());
 
-		AboutCommand = ReactiveCommand.Create(
-			() => MainViewModel.Instance.DialogScreen.To(new AboutViewModel(navigateBack: MainViewModel.Instance.DialogScreen.CurrentPage is not null)),
+		AboutCommand = ReactiveCommand.CreateFromTask(
+			async () => await MainViewModel.Instance.DialogScreen.ToAsync(new AboutViewModel(navigateBack: MainViewModel.Instance.DialogScreen.CurrentPage is not null)),
 			canExecute: MainViewModel.Instance.DialogScreen.WhenAnyValue(x => x.CurrentPage).Select(x => x is null));
 
 		using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
@@ -53,10 +54,10 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public void ShutDown() => _mainWindowService.Shutdown();
 
-	public void OnShutdownPrevented()
+	public async Task OnShutdownPreventedAsync()
 	{
 		MainViewModel.Instance.ApplyUiConfigWindowSate(); // Will pop the window if it was minimized.
-		MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this));
+		await MainViewModel.Instance.CompactDialogScreen.ToAsync(new ShuttingDownViewModel(this));
 	}
 
 	public bool CanShutdown()

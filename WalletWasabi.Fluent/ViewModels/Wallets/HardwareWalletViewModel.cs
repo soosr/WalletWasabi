@@ -18,7 +18,7 @@ public class HardwareWalletViewModel : WalletViewModel
 				if (path is { })
 				{
 					var txn = await TransactionHelpers.ParseTransactionAsync(path, wallet.Network);
-					Navigate(NavigationTarget.DialogScreen).To(new BroadcastTransactionViewModel(wallet.Network, txn));
+					await Navigate(NavigationTarget.DialogScreen).ToAsync(new BroadcastTransactionViewModel(wallet.Network, txn));
 				}
 			}
 			catch (Exception ex)

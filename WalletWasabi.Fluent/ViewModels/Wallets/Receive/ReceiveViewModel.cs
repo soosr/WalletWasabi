@@ -2,6 +2,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -39,16 +40,16 @@ public partial class ReceiveViewModel : RoutableViewModel
 				.Merge(SuggestionLabels.WhenAnyValue(x => x.IsCurrentTextValid).Select(_ => Unit.Default))
 				.Select(_ => SuggestionLabels.Labels.Count > 0 || SuggestionLabels.IsCurrentTextValid);
 
-		NextCommand = ReactiveCommand.Create(OnNext, nextCommandCanExecute);
+		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync, nextCommandCanExecute);
 
-		ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
+		ShowExistingAddressesCommand = ReactiveCommand.CreateFromTask(OnShowExistingAddressesAsync);
 	}
 
 	public SuggestionLabelsViewModel SuggestionLabels { get; }
 
 	public ICommand ShowExistingAddressesCommand { get; }
 
-	private void OnNext()
+	private async Task OnNextAsync()
 	{
 		var newKey = _wallet.KeyManager.GetNextReceiveKey(new SmartLabel(SuggestionLabels.Labels), out bool minGapLimitIncreased);
 
@@ -63,17 +64,17 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 		SuggestionLabels.Labels.Clear();
 
-		Navigate().To(new ReceiveAddressViewModel(_wallet, newKey));
+		await Navigate().ToAsync(new ReceiveAddressViewModel(_wallet, newKey));
 	}
 
-	private void OnShowExistingAddresses()
+	private async Task OnShowExistingAddressesAsync()
 	{
-		Navigate().To(new ReceiveAddressesViewModel(_wallet));
+		await Navigate().ToAsync(new ReceiveAddressesViewModel(_wallet));
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposable)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposable)
 	{
-		base.OnNavigatedTo(isInHistory, disposable);
+		await base.OnNavigatedToAsync(isInHistory, disposable);
 
 		IsExistingAddressesButtonVisible = _wallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
 	}

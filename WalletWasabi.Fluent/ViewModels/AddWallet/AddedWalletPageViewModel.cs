@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
@@ -33,7 +34,7 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 
 	private void OnNext()
 	{
-		Navigate().Clear();
+		Navigate().ClearAsync();
 
 		var navBar = NavigationManager.Get<NavBarViewModel>();
 
@@ -46,9 +47,9 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 		}
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		if (!Services.WalletManager.WalletExists(_keyManager.MasterFingerprint))
 		{

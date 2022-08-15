@@ -17,15 +17,15 @@ public partial class ThemeChangeViewModel : RoutableViewModel
 		_newTheme = newTheme;
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
 			await Task.Delay(500);
 			ThemeHelper.ApplyTheme(_newTheme);
-			Navigate().Clear();
+			Navigate().ClearAsync();
 		});
 	}
 }

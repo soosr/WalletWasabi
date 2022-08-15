@@ -39,8 +39,8 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 			IncomingAmount = amount;
 		}
 
-		ShowDetailsCommand = ReactiveCommand.Create(() =>
-			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
+		ShowDetailsCommand = ReactiveCommand.CreateFromTask(async () =>
+			await RoutableViewModel.Navigate(NavigationTarget.DialogScreen).ToAsync(
 				new TransactionDetailsViewModel(transactionSummary, walletViewModel.Wallet, updateTrigger)));
 
 		var speedUpTransactionCommandCanExecute = this.WhenAnyValue(x => x.IsConfirmed)

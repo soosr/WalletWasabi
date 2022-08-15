@@ -53,7 +53,7 @@ public class ApplicationStateManager : IMainWindowService
 		_stateMachine.Configure(State.InitialState)
 			.InitialTransition(State.Open)
 			.OnTrigger(Trigger.ShutdownRequested, () => lifetime.Shutdown())
-			.OnTrigger(Trigger.ShutdownPrevented, () => ApplicationViewModel.OnShutdownPrevented());
+			.OnTrigger(Trigger.ShutdownPrevented, async () => await ApplicationViewModel.OnShutdownPreventedAsync());
 
 		_stateMachine.Configure(State.Closed)
 			.SubstateOf(State.InitialState)

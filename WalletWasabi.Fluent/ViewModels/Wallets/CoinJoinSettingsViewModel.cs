@@ -86,9 +86,9 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 
 	public ICommand SelectCoinjoinProfileCommand { get; }
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 		PlebStopThreshold = _wallet.KeyManager.PlebStopThreshold.ToString();
 		AnonScoreTarget = _wallet.KeyManager.AnonScoreTarget;
 

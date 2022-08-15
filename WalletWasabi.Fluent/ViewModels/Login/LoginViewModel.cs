@@ -32,7 +32,7 @@ public partial class LoginViewModel : RoutableViewModel
 
 		OkCommand = ReactiveCommand.Create(OnOk);
 
-		ForgotPasswordCommand = ReactiveCommand.Create(() => OnForgotPassword(wallet));
+		ForgotPasswordCommand = ReactiveCommand.CreateFromTask(async () => await OnForgotPasswordAsync(wallet));
 
 		EnableAutoBusyOn(NextCommand);
 	}
@@ -67,7 +67,7 @@ public partial class LoginViewModel : RoutableViewModel
 
 		if (legalResult)
 		{
-			LoginWallet(closedWalletViewModel);
+			await LoginWalletAsync(closedWalletViewModel);
 		}
 		else
 		{
@@ -82,15 +82,15 @@ public partial class LoginViewModel : RoutableViewModel
 		ErrorMessage = "";
 	}
 
-	private void OnForgotPassword(Wallet wallet)
+	private async Task OnForgotPasswordAsync(Wallet wallet)
 	{
-		Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet));
+		await Navigate(NavigationTarget.DialogScreen).ToAsync(new PasswordFinderIntroduceViewModel(wallet));
 	}
 
-	private void LoginWallet(ClosedWalletViewModel closedWalletViewModel)
+	private async Task LoginWalletAsync(ClosedWalletViewModel closedWalletViewModel)
 	{
 		closedWalletViewModel.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
-		Navigate().To(closedWalletViewModel, NavigationMode.Clear);
+		await Navigate().ToAsync(closedWalletViewModel, NavigationMode.Clear);
 	}
 
 	private async Task<bool> ShowLegalAsync()

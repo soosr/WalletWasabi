@@ -19,7 +19,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 	public CoinJoinProfilesViewModel(KeyManager keyManager, bool isNewWallet)
 	{
-		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager, isNewWallet));
+		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(keyManager, isNewWallet));
 		EnableBack = true;
 
 		AutoCoinJoin = keyManager.AutoCoinJoin;
@@ -73,7 +73,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		}
 	}
 
-	private void OnNext(KeyManager keyManager, bool isNewWallet)
+	private async Task OnNextAsync(KeyManager keyManager, bool isNewWallet)
 	{
 		var selected = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
 
@@ -85,7 +85,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 		if (isNewWallet)
 		{
-			Navigate().To(new AddedWalletPageViewModel(keyManager));
+			await Navigate().ToAsync(new AddedWalletPageViewModel(keyManager));
 		}
 		else
 		{
@@ -94,9 +94,9 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		}
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		var enableCancel = Services.WalletManager.HasWallet();
 		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);

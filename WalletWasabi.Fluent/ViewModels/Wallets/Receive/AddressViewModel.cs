@@ -33,9 +33,9 @@ public partial class AddressViewModel : ViewModelBase
 			ReactiveCommand.CreateFromTask(async () => await parent.HideAddressAsync(model, Address));
 
 		EditLabelCommand =
-			ReactiveCommand.Create(() => parent.NavigateToAddressEdit(model, parent.Wallet.KeyManager));
+			ReactiveCommand.CreateFromTask(async () => await parent.NavigateToAddressEditAsync(model, parent.Wallet.KeyManager));
 
-		NavigateCommand = ReactiveCommand.Create(() => parent.Navigate().To(new ReceiveAddressViewModel(wallet, model)));
+		NavigateCommand = ReactiveCommand.CreateFromTask(async () => await parent.Navigate().ToAsync(new ReceiveAddressViewModel(wallet, model)));
 	}
 
 	public ICommand CopyAddressCommand { get; }

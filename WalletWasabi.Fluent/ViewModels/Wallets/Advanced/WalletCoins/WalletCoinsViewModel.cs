@@ -36,10 +36,10 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		NextCommand = CancelCommand;
-		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoins);
+		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoinsAsync);
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
 		var coins = CreateCoinsObservable(_balanceChanged);
 
@@ -67,7 +67,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		Source = CreateGridSource(coinsCollection)
 			.DisposeWith(disposables);
 
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 	}
 
 	private static int GetOrderingPriority(WalletCoinViewModel x)
@@ -103,7 +103,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		return concat;
 	}
 
-	private async Task OnSendCoins()
+	private async Task OnSendCoinsAsync()
 	{
 		var wallet = _walletViewModel.Wallet;
 		var selectedSmartCoins = Source.Items.Where(x => x.IsSelected).Select(x => x.Coin).ToImmutableArray();
@@ -129,7 +129,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		info.UserLabels = label;
 		info.IsSelectedCoinModificationEnabled = false;
 
-		Navigate().To(new TransactionPreviewViewModel(wallet, info, address, true));
+		await Navigate().ToAsync(new TransactionPreviewViewModel(wallet, info, address, true));
 	}
 
 	private FlatTreeDataGridSource<WalletCoinViewModel> CreateGridSource(IEnumerable<WalletCoinViewModel> coins)

@@ -1,6 +1,7 @@
 using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -24,7 +25,7 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 		_title = WalletName;
 		WalletState = wallet.State;
 
-		OpenCommand = ReactiveCommand.Create(() => Navigate().To(this, NavigationMode.Clear));
+		OpenCommand = ReactiveCommand.CreateFromTask(async () => await Navigate().ToAsync(this, NavigationMode.Clear));
 
 		SetIcon();
 
@@ -66,9 +67,9 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 		IconNameFocused = $"nav_{baseResourceName}_filled";
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
 			.ObserveOn(RxApp.MainThreadScheduler)

@@ -12,7 +12,7 @@ public partial class TermsAndConditionsViewModel : DialogViewModelBase<bool>
 
 	public TermsAndConditionsViewModel()
 	{
-		ViewTermsCommand = ReactiveCommand.Create(() => Navigate().To(new LegalDocumentsViewModel()));
+		ViewTermsCommand = ReactiveCommand.CreateFromTask(async () => await Navigate().ToAsync(new LegalDocumentsViewModel()));
 
 		NextCommand = ReactiveCommand.Create(
 			OnNext,

@@ -131,10 +131,10 @@ public partial class MainViewModel : ViewModelBase
 
 	public void ClearStacks()
 	{
-		MainScreen.Clear();
-		DialogScreen.Clear();
-		FullScreen.Clear();
-		CompactDialogScreen.Clear();
+		MainScreen.ClearAsync();
+		DialogScreen.ClearAsync();
+		FullScreen.ClearAsync();
+		CompactDialogScreen.ClearAsync();
 	}
 
 	public void InvalidateIsCoinJoinActive()

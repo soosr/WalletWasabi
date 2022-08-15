@@ -34,9 +34,9 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 
 	public PasswordFinderOptions Options { get; }
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		var cts = new CancellationTokenSource();
 
@@ -59,11 +59,11 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 			var result = await Task.Run(() => PasswordFinderHelper.TryFind(options, out foundPassword, SetStatus, token));
 			if (result && foundPassword is { })
 			{
-				Navigate().To(new PasswordFoundViewModel(foundPassword), NavigationMode.Clear);
+				await Navigate().ToAsync(new PasswordFoundViewModel(foundPassword), NavigationMode.Clear);
 			}
 			else
 			{
-				Navigate().To(new PasswordNotFoundViewModel(options.Wallet), NavigationMode.Clear);
+				await Navigate().ToAsync(new PasswordNotFoundViewModel(options.Wallet), NavigationMode.Clear);
 			}
 		}
 		catch (OperationCanceledException)

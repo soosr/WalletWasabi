@@ -14,10 +14,10 @@ public class CharsetViewModel : ViewModelBase
 		ShortTitle = charset.ToString().ToUpper(CultureInfo.InvariantCulture);
 		Characters = PasswordFinderHelper.Charsets.TryGetValue(charset, out var characters) ? characters : "";
 
-		SelectCommand = ReactiveCommand.Create(() =>
+		SelectCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			owner.Options.Charset = charset;
-			owner.Navigate().To(new ContainsNumbersViewModel(owner.Options));
+			await owner.Navigate().ToAsync(new ContainsNumbersViewModel(owner.Options));
 		});
 	}
 

@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Media;
 using ReactiveUI;
@@ -18,8 +19,8 @@ public partial class ContainsSymbolsViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		YesCommand = ReactiveCommand.Create(() => SetAnswer(true));
-		NoCommand = ReactiveCommand.Create(() => SetAnswer(false));
+		YesCommand = ReactiveCommand.CreateFromTask(async () => await SetAnswerAsync(true));
+		NoCommand = ReactiveCommand.CreateFromTask(async () => await SetAnswerAsync(false));
 	}
 
 	public PasswordFinderOptions Options { get; }
@@ -28,9 +29,9 @@ public partial class ContainsSymbolsViewModel : RoutableViewModel
 
 	public ICommand NoCommand { get; }
 
-	private void SetAnswer(bool ans)
+	private async Task SetAnswerAsync(bool ans)
 	{
 		Options.UseSymbols = ans;
-		Navigate().To(new SearchPasswordViewModel(Options));
+		await Navigate().ToAsync(new SearchPasswordViewModel(Options));
 	}
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Reactive.Disposables;
+using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
@@ -21,28 +22,28 @@ public partial class RecoveryWordsViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.Create(() => OnNext(mnemonic, walletName));
+		NextCommand = ReactiveCommand.CreateFromTask(() => OnNext(mnemonic, walletName));
 
 		CancelCommand = ReactiveCommand.Create(OnCancel);
 	}
 
 	public List<RecoveryWordViewModel> MnemonicWords { get; set; }
 
-	private void OnNext(Mnemonic mnemonic, string walletName)
+	private async Task OnNext(Mnemonic mnemonic, string walletName)
 	{
-		Navigate().To(new ConfirmRecoveryWordsViewModel(MnemonicWords, mnemonic, walletName));
+		await Navigate().ToAsync(new ConfirmRecoveryWordsViewModel(MnemonicWords, mnemonic, walletName));
 	}
 
 	private void OnCancel()
 	{
-		Navigate().Clear();
+		Navigate().ClearAsync();
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
 		var enableCancel = Services.WalletManager.HasWallet();
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 	}
 }

@@ -9,7 +9,7 @@ public partial class SuccessViewModel : RoutableViewModel
 	public SuccessViewModel(string successText)
 	{
 		SuccessText = successText;
-		NextCommand = ReactiveCommand.Create(() => Navigate().Clear());
+		NextCommand = ReactiveCommand.Create(() => Navigate().ClearAsync());
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}

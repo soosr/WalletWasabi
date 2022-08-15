@@ -21,7 +21,7 @@ public partial class BroadcasterViewModel : TriggerCommandViewModel
 
 		if (dialogResult.Result is { } transaction)
 		{
-			MainViewModel.Instance.DialogScreen.To(new BroadcastTransactionViewModel(Services.Config.Network, transaction));
+			await MainViewModel.Instance.DialogScreen.ToAsync(new BroadcastTransactionViewModel(Services.Config.Network, transaction));
 		}
 	});
 }

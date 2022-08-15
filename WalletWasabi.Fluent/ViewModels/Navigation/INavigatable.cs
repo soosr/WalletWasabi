@@ -1,8 +1,10 @@
+using System.Threading.Tasks;
+
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
 public interface INavigatable
 {
-	void OnNavigatedTo(bool isInHistory);
+	Task OnNavigatedToAsync(bool isInHistory);
 
 	void OnNavigatedFrom(bool isInHistory);
 }

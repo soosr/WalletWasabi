@@ -89,14 +89,14 @@ public partial class WalletManagerViewModel : ViewModelBase
 				{
 					if (!e.IsOwnCoinJoin)
 					{
-						NotificationHelpers.Show(wallet.WalletName, e, onClick: () =>
+						NotificationHelpers.Show(wallet.WalletName, e, onClick: async () => //TODO: Fix async Action problem
 						{
 							if (MainViewModel.Instance.IsBusy)
 							{
 								return;
 							}
 
-							wvm.NavigateAndHighlight(e.Transaction.GetHash());
+							await wvm.NavigateAndHighlightAsync(e.Transaction.GetHash());
 						});
 					}
 

@@ -23,7 +23,7 @@ public partial class SendSuccessViewModel : RoutableViewModel
 
 	private void OnNext()
 	{
-		Navigate().Clear();
+		Navigate().ClearAsync();
 
 		var walletViewModel = UiServices.WalletManager.GetWalletViewModel(_wallet);
 

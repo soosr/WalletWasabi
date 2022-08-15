@@ -87,7 +87,7 @@ public partial class BroadcastTransactionViewModel : RoutableViewModel
 		try
 		{
 			await Services.TransactionBroadcaster.SendTransactionAsync(transaction);
-			Navigate().To(new SuccessViewModel("The transaction has been successfully broadcasted."));
+			await Navigate().ToAsync(new SuccessViewModel("The transaction has been successfully broadcasted."));
 		}
 		catch (Exception ex)
 		{

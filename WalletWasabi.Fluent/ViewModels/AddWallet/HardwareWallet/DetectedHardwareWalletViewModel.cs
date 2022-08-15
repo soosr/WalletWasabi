@@ -59,24 +59,24 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 			var km = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, Services.WalletManager.Network, CancelCts.Token);
 			km.SetIcon(Type);
 
-			Navigate().To(new AddedWalletPageViewModel(km));
+			await Navigate().ToAsync(new AddedWalletPageViewModel(km));
 		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
 			await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Error occurred during adding your wallet.");
-			Navigate().Back();
+			await Navigate().BackAsync();
 		}
 	}
 
 	private void OnNo()
 	{
-		Navigate().Back();
+		Navigate().BackAsync();
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		var enableCancel = Services.WalletManager.HasWallet();
 		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);

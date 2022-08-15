@@ -130,7 +130,7 @@ public partial class SendViewModel : RoutableViewModel
 
 			_transactionInfo.UserLabels = label;
 
-			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, _isFixedAmount));
+			await Navigate().ToAsync(new TransactionPreviewViewModel(wallet, _transactionInfo, address, _isFixedAmount));
 		}, nextCommandCanExecute);
 
 		this.WhenAnyValue(x => x.ConversionReversed)
@@ -290,7 +290,7 @@ public partial class SendViewModel : RoutableViewModel
 		return result;
 	}
 
-	protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool inHistory, CompositeDisposable disposables)
 	{
 		if (!inHistory)
 		{
@@ -313,7 +313,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		Balance.Activate(disposables);
 
-		base.OnNavigatedTo(inHistory, disposables);
+		await base.OnNavigatedToAsync(inHistory, disposables);
 	}
 
 	protected override void OnNavigatedFrom(bool isInHistory)

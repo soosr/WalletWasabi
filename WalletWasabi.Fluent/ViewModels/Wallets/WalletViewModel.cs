@@ -134,9 +134,9 @@ public partial class WalletViewModel : WalletViewModelBase
 					return isSelected && !isWalletBalanceZero && !wallet.KeyManager.IsWatchOnly;
 				});
 
-		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(wallet, balanceChanged, History.UnfilteredTransactions)));
+		SendCommand = ReactiveCommand.CreateFromTask(async () => await Navigate(NavigationTarget.DialogScreen).ToAsync(new SendViewModel(wallet, balanceChanged, History.UnfilteredTransactions)));
 
-		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(wallet)));
+		ReceiveCommand = ReactiveCommand.CreateFromTask(async () => await Navigate(NavigationTarget.DialogScreen).ToAsync(new ReceiveViewModel(wallet)));
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -151,16 +151,16 @@ public partial class WalletViewModel : WalletViewModelBase
 				}
 			}
 
-			Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
+			await Navigate(NavigationTarget.DialogScreen).ToAsync(new WalletInfoViewModel(this));
 		});
 
-		WalletStatisticsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletStatsViewModel(this)));
+		WalletStatisticsCommand = ReactiveCommand.CreateFromTask(async () => await Navigate(NavigationTarget.DialogScreen).ToAsync(new WalletStatsViewModel(this)));
 
-		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
+		WalletSettingsCommand = ReactiveCommand.CreateFromTask(async () => await Navigate(NavigationTarget.DialogScreen).ToAsync(Settings));
 
-		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, balanceChanged)));
+		WalletCoinsCommand = ReactiveCommand.CreateFromTask(async () => await Navigate(NavigationTarget.DialogScreen).ToAsync(new WalletCoinsViewModel(this, balanceChanged)));
 
-		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!wallet.KeyManager.IsWatchOnly));
+		CoinJoinSettingsCommand = ReactiveCommand.CreateFromTask(async () => await Navigate(NavigationTarget.DialogScreen).ToAsync(CoinJoinSettings), Observable.Return(!wallet.KeyManager.IsWatchOnly));
 
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(this, balanceChanged);
 	}
@@ -242,20 +242,16 @@ public partial class WalletViewModel : WalletViewModelBase
 		IsWideLayout = layoutIndex == _wideLayoutIndex;
 	}
 
-	public void NavigateAndHighlight(uint256 txid)
+	public async Task NavigateAndHighlightAsync(uint256 txid)
 	{
-		Navigate().To(this, NavigationMode.Clear);
-
-		RxApp.MainThreadScheduler.Schedule(async () =>
-		{
-			await Task.Delay(500);
-			History.SelectTransaction(txid);
-		});
+		await Navigate().ToAsync(this, NavigationMode.Clear);
+		await Task.Delay(500);
+		History.SelectTransaction(txid);
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		foreach (var tile in _tiles)
 		{

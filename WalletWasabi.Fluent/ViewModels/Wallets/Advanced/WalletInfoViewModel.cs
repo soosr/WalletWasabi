@@ -23,7 +23,7 @@ public partial class WalletInfoViewModel : RoutableViewModel
 
 		EnableCancel = !wallet.KeyManager.IsWatchOnly;
 
-		NextCommand = ReactiveCommand.Create(() => Navigate().Clear());
+		NextCommand = ReactiveCommand.Create(() => Navigate().ClearAsync());
 
 		CancelCommand = ReactiveCommand.Create(() =>
 		{

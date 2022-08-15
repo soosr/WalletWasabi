@@ -1,6 +1,7 @@
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Threading;
+using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -29,9 +30,9 @@ public partial class LegalDocumentsViewModel : RoutableViewModel
 		NextCommand = BackCommand;
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		if (isInHistory)
 		{
@@ -52,7 +53,7 @@ public partial class LegalDocumentsViewModel : RoutableViewModel
 				var caption = "Failed to get Legal documents.";
 				Logger.LogError(caption, ex);
 				await ShowErrorAsync(Title, message: caption, caption: "");
-				Navigate().Back();
+				Navigate().BackAsync();
 			}
 			finally
 			{

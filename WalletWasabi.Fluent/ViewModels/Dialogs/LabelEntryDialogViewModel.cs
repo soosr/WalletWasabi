@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -44,9 +45,9 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?
 		Close(DialogResultKind.Normal, new SmartLabel(SuggestionLabels.Labels.ToArray()));
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		_wallet.TransactionProcessor.WhenAnyValue(x => x.Coins)
 			.Select(_ => Unit.Default)

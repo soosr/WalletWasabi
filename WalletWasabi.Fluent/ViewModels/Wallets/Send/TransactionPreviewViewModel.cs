@@ -161,7 +161,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			if (saved)
 			{
-				Navigate().To(new SuccessViewModel("The PSBT has been successfully created."));
+				await Navigate().ToAsync(new SuccessViewModel("The PSBT has been successfully created."));
 			}
 		}
 	}
@@ -402,13 +402,13 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 		else
 		{
-			Navigate().Back();
+			Navigate().BackAsync();
 		}
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	protected override async Task OnNavigatedToAsync(bool isInHistory, CompositeDisposable disposables)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
+		await base.OnNavigatedToAsync(isInHistory, disposables);
 
 		Observable
 			.FromEventPattern(_wallet.FeeProvider, nameof(_wallet.FeeProvider.AllFeeEstimateChanged))
@@ -450,7 +450,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 					await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
 				await SendTransactionAsync(finalTransaction);
 				_cancellationTokenSource.Cancel();
-				Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
+				await Navigate().ToAsync(new SendSuccessViewModel(_wallet, finalTransaction));
 			}
 			catch (Exception ex)
 			{
