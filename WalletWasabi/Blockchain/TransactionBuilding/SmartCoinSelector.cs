@@ -2,22 +2,25 @@ using NBitcoin;
 using System.Linq;
 using System.Collections.Generic;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using System.Collections.Immutable;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
 
 public class SmartCoinSelector : ICoinSelector
 {
-	public SmartCoinSelector(List<SmartCoin> unspentCoins)
+	public SmartCoinSelector(List<SmartCoin> unspentCoins, int privateThreshold)
 	{
+		PrivateThreshold = privateThreshold;
 		UnspentCoins = unspentCoins.Distinct().ToList();
 	}
 
 	private List<SmartCoin> UnspentCoins { get; }
 	private int IterationCount { get; set; }
+	public int PrivateThreshold { get; }
 
 	/// <param name="suggestion">We use this to detect if NBitcoin tries to suggest something different and indicate the error.</param>
 	/// <param name="target">Only <see cref="Money"/> type is really supported by this implementation.</param>
@@ -47,45 +50,41 @@ public class SmartCoinSelector : ICoinSelector
 			}
 		}
 
-		// Get unique clusters.
-		IEnumerable<Cluster> uniqueClusters = UnspentCoins
-			.Select(coin => coin.HdPubKey.Cluster)
-			.Distinct();
+		// Get unique pockets.
+		IEnumerable<Pocket> pockets = UnspentCoins.GetPockets(PrivateThreshold).ToImmutableArray();
 
-		// Build all the possible coin clusters, except when it's computationally too expensive.
-		List<List<SmartCoin>> coinClusters = uniqueClusters.Count() < 10
-			? uniqueClusters
+		// Build all the possible pockets, except when it's computationally too expensive.
+		List<Pocket> pocketCombinations = pockets.Count() < 10
+			? pockets
 				.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
-				.Select(clusterCombination => UnspentCoins
-					.Where(coin => clusterCombination.Contains(coin.HdPubKey.Cluster))
-					.ToList())
+				.Select(pockets => pockets.Aggregate((current, pocket) => current + pocket))
 				.ToList()
-			: new List<List<SmartCoin>>();
+			: new List<Pocket>();
 
-		coinClusters.Add(UnspentCoins);
+		pocketCombinations.Add(new Pocket(("Selected unspent coins", new CoinsView(UnspentCoins))));
 
-		// This operation is doing super advanced grouping on the coin clusters and adding properties to each of them.
-		var sayajinCoinClusters = coinClusters
-			.Select(coins => (Coins: coins, Privacy: 1.0m / (1 + coins.Sum(x => x.HdPubKey.Cluster.Labels.Count()))))
+		// This operation is doing super advanced grouping on the pockets and adding properties to each of them.
+		var sayajinPockets = pocketCombinations
+			.Select(pocket => (Coins: pocket.Coins, Privacy: 1.0m / (1 + pocket.Coins.Sum(x => x.HdPubKey.Cluster.Labels.Count()))))
 			.Select(group => (
 				Coins: group.Coins,
 				Unconfirmed: group.Coins.Any(x => !x.Confirmed),    // If group has an unconfirmed, then the whole group is unconfirmed.
 				AnonymitySet: group.Coins.Min(x => x.HdPubKey.AnonymitySet), // The group is as anonymous as its weakest member.
-				ClusterPrivacy: group.Privacy, // The number people/entities that know the cluster.
+				PocketPrivacy: group.Privacy, // The number people/entities that know the pocket.
 				Amount: group.Coins.Sum(x => x.Amount)
 			));
 
-		// Find the best coin cluster that we are going to use.
-		IEnumerable<SmartCoin> bestCoinCluster = sayajinCoinClusters
+		// Find the best pocket combination that we are going to use.
+		IEnumerable<SmartCoin> bestPocketCoins = sayajinPockets
 			.Where(group => group.Amount >= targetMoney)
 			.OrderBy(group => group.Unconfirmed)
 			.ThenByDescending(group => group.AnonymitySet)     // Always try to spend/merge the largest anonset coins first.
-			.ThenByDescending(group => group.ClusterPrivacy)   // Select lesser-known coins.
+			.ThenByDescending(group => group.PocketPrivacy)   // Select lesser-known coins.
 			.ThenByDescending(group => group.Amount)           // Then always try to spend by amount.
 			.First()
 			.Coins;
 
-		var coinsInBestClusterByScript = bestCoinCluster
+		var coinsInBestClusterByScript = bestPocketCoins
 			.GroupBy(c => c.ScriptPubKey)
 			.Select(group => (ScriptPubKey: group.Key, Coins: group.ToList()))
 			.OrderBy(x => x.Coins.Sum(c => c.Amount))

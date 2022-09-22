@@ -104,7 +104,7 @@ public class TransactionFactory
 		Logger.LogInfo("Calculating dynamic transaction fee...");
 
 		TransactionBuilder builder = Network.CreateTransactionBuilder();
-		builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs));
+		builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs, KeyManager.AnonScoreTarget));
 		builder.AddCoins(allowedSmartCoinInputs.Select(c => c.Coin));
 		builder.SetLockTime(lockTimeSelector());
 

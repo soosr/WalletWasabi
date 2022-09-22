@@ -30,7 +30,7 @@ public class SmartCoinSelectorTests
 			Enumerable.Range(0, 9).Select(i => ("Juan", 0.1m * (i + 1))))
 			.ToList();
 
-		var selector = new SmartCoinSelector(availableCoins);
+		var selector = new SmartCoinSelector(availableCoins, privateThreshold: 100);
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), Money.Coins(0.3m));
 
 		var theOnlyOne = Assert.Single(coinsToSpend.Cast<Coin>());
@@ -46,7 +46,7 @@ public class SmartCoinSelectorTests
 
 		smartCoins.Add(BitcoinFactory.CreateSmartCoin(smartCoins[0].HdPubKey, 0.11m));
 
-		var selector = new SmartCoinSelector(smartCoins);
+		var selector = new SmartCoinSelector(smartCoins, privateThreshold: 100);
 
 		var someCoins = smartCoins.Select(x => x.Coin);
 		var coinsToSpend = selector.Select(someCoins, Money.Coins(0.41m));
@@ -62,7 +62,7 @@ public class SmartCoinSelectorTests
 
 		smartCoins.Add(BitcoinFactory.CreateSmartCoin(smartCoins[0].HdPubKey, 0.11m));
 
-		var selector = new SmartCoinSelector(smartCoins);
+		var selector = new SmartCoinSelector(smartCoins, privateThreshold: 100);
 
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), Money.Coins(0.31m)).Cast<Coin>().ToList();
 
@@ -78,7 +78,7 @@ public class SmartCoinSelectorTests
 
 		var coinsKnownByBeto = GenerateSmartCoins(Enumerable.Repeat(("Beto", 0.2m), 2));
 
-		var selector = new SmartCoinSelector(coinsKnownByJuan.Concat(coinsKnownByBeto).ToList());
+		var selector = new SmartCoinSelector(coinsKnownByJuan.Concat(coinsKnownByBeto).ToList(), privateThreshold: 100);
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), Money.Coins(0.3m)).Cast<Coin>().ToList();
 
 		Assert.Equal(2, coinsToSpend.Count);
