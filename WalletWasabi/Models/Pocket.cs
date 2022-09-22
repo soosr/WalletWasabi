@@ -3,7 +3,7 @@ using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 
-namespace WalletWasabi.Fluent.Models;
+namespace WalletWasabi.Models;
 
 public class Pocket
 {
