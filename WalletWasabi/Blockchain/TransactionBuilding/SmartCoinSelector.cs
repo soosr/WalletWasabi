@@ -98,7 +98,7 @@ public class SmartCoinSelector : ICoinSelector
 			.ThenByDescending(group => group.AnonymitySet) // Always try to spend/merge the largest anonset coins first.
 			.ThenByDescending(group => group.PocketRecipientIndex) // Select coins that known by the recipient.
 			.ThenByDescending(group => group.PocketPrivacy) // Select lesser-known coins.
-			.ThenBy(group => group.NumberOfPockets) // Avoid merging pockets as it is possible.
+			.ThenBy(group => group.NumberOfPockets) // Avoid merging pockets as much as possible.
 			.ThenByDescending(group => group.Amount) // Then always try to spend by amount.
 			.First()
 			.Coins; 
