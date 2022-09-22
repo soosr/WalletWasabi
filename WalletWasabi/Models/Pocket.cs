@@ -12,9 +12,12 @@ public class Pocket
 	{
 		Coins = pocket.coins;
 		Labels = pocket.labels;
+		NumberOfCombinedPockets = 1;
 	}
 
 	public SmartLabel Labels { get; }
+
+	public int NumberOfCombinedPockets { get; init; }
 
 	public Money Amount => Coins.TotalAmount();
 
@@ -28,8 +31,12 @@ public class Pocket
 	{
 		var mergedLabels = SmartLabel.Merge(x.Labels, y.Labels);
 		var mergedCoins = new CoinsView(x.Coins.Concat(y.Coins));
+		var numberOfCombinations = x.NumberOfCombinedPockets + y.NumberOfCombinedPockets;
 
-		return new Pocket((mergedLabels, mergedCoins));
+		return new Pocket((mergedLabels, mergedCoins))
+		{
+			NumberOfCombinedPockets = numberOfCombinations
+		};
 	}
 
 	public static Pocket operator +(Pocket[] pockets, Pocket p) => p + pockets.Aggregate((current, pocket) => current + pocket);

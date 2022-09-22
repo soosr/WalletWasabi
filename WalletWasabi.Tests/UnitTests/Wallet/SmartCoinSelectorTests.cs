@@ -31,7 +31,7 @@ public class SmartCoinSelectorTests
 			Enumerable.Range(0, 9).Select(i => ("Juan", 0.1m * (i + 1))))
 			.ToList();
 
-		var selector = new SmartCoinSelector(availableCoins, privateThreshold: 100, recipient: SmartLabel.Empty);
+		var selector = new SmartCoinSelector(availableCoins, privateThreshold: 100, recipient: "Someone");
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), Money.Coins(0.3m));
 
 		var theOnlyOne = Assert.Single(coinsToSpend.Cast<Coin>());
@@ -47,7 +47,7 @@ public class SmartCoinSelectorTests
 
 		smartCoins.Add(BitcoinFactory.CreateSmartCoin(smartCoins[0].HdPubKey, 0.11m));
 
-		var selector = new SmartCoinSelector(smartCoins, privateThreshold: 100, recipient: SmartLabel.Empty);
+		var selector = new SmartCoinSelector(smartCoins, privateThreshold: 100, recipient: "Someone");
 
 		var someCoins = smartCoins.Select(x => x.Coin);
 		var coinsToSpend = selector.Select(someCoins, Money.Coins(0.41m));
@@ -63,7 +63,7 @@ public class SmartCoinSelectorTests
 
 		smartCoins.Add(BitcoinFactory.CreateSmartCoin(smartCoins[0].HdPubKey, 0.11m));
 
-		var selector = new SmartCoinSelector(smartCoins, privateThreshold: 100, recipient: SmartLabel.Empty);
+		var selector = new SmartCoinSelector(smartCoins, privateThreshold: 100, recipient: "Someone");
 
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), Money.Coins(0.31m)).Cast<Coin>().ToList();
 
@@ -79,7 +79,7 @@ public class SmartCoinSelectorTests
 
 		var coinsKnownByBeto = GenerateSmartCoins(Enumerable.Repeat(("Beto", 0.2m), 2));
 
-		var selector = new SmartCoinSelector(coinsKnownByJuan.Concat(coinsKnownByBeto).ToList(), privateThreshold: 100, recipient: SmartLabel.Empty);
+		var selector = new SmartCoinSelector(coinsKnownByJuan.Concat(coinsKnownByBeto).ToList(), privateThreshold: 100, recipient: "Someone");
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), Money.Coins(0.3m)).Cast<Coin>().ToList();
 
 		Assert.Equal(2, coinsToSpend.Count);
@@ -101,7 +101,7 @@ public class SmartCoinSelectorTests
 		};
 		var privateCoins = smartCoins.Where(x => x.HdPubKey.AnonymitySet > privateThreshold).Select(x => x.Coin);
 
-		var selector = new SmartCoinSelector(smartCoins, privateThreshold, recipient: "");
+		var selector = new SmartCoinSelector(smartCoins, privateThreshold, recipient: "Someone");
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), amountToSend).Cast<Coin>().ToList();
 
 		Assert.True(coinsToSpend.All(coin => privateCoins.Contains(coin)));
@@ -122,7 +122,7 @@ public class SmartCoinSelectorTests
 		};
 		var semiPrivateCoins = smartCoins.Where(x => x.HdPubKey.AnonymitySet < privateThreshold && x.HdPubKey.AnonymitySet >= 2).Select(x => x.Coin);
 
-		var selector = new SmartCoinSelector(smartCoins, privateThreshold, recipient: "");
+		var selector = new SmartCoinSelector(smartCoins, privateThreshold, recipient: "Someone");
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), amountToSend).Cast<Coin>().ToList();
 
 		Assert.True(coinsToSpend.All(coin => semiPrivateCoins.Contains(coin)));
@@ -144,7 +144,7 @@ public class SmartCoinSelectorTests
 		};
 		var semiPrivateAndPrivateCoins = smartCoins.Where(x => x.HdPubKey.AnonymitySet >= 2).Select(x => x.Coin);
 
-		var selector = new SmartCoinSelector(smartCoins, privateThreshold, recipient: "");
+		var selector = new SmartCoinSelector(smartCoins, privateThreshold, recipient: "Someone");
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), amountToSend).Cast<Coin>().ToList();
 
 		Assert.True(coinsToSpend.All(coin => semiPrivateAndPrivateCoins.Contains(coin)));

@@ -1,3 +1,4 @@
+using System.Collections;
 using NBitcoin;
 using System.Linq;
 using System.Collections.Generic;
@@ -57,31 +58,28 @@ public class SmartCoinSelector : ICoinSelector
 		IEnumerable<Pocket> pockets = UnspentCoins.GetPockets(PrivateThreshold).ToImmutableArray();
 
 		// Build all the possible pockets, except when it's computationally too expensive.
-		List<(Pocket, int)> pocketCombinations = pockets.Count() < 10
+		List<Pocket> pocketCombinations = pockets.Count() < 10
 			? pockets
 				.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
-				.Select(pockets => (pockets.Aggregate((current, pocket) => current + pocket), pockets.Count()))
+				.Select(pockets => pockets.Aggregate((current, pocket) => current + pocket))
 				.ToList()
-			: new List<(Pocket, int)>();
+			: new List<Pocket>();
 
-		pocketCombinations.Add((new Pocket(("", new CoinsView(UnspentCoins))), pockets.Count()));
+		var unspentCoinsPocket = pockets.Aggregate((current, pocket) => current + pocket);
+		pocketCombinations.Add(unspentCoinsPocket);
 
 		// This operation is doing super advanced grouping on the pockets and adding properties to each of them.
 		var sayajinPockets = pocketCombinations
-			.Select(tup =>
+			.Select(pocket =>
 			{
-				var combinedPocket = tup.Item1;
-				var containedRecipientLabelsCount = combinedPocket.Labels.Count(label => Recipient.Contains(label, StringComparer.OrdinalIgnoreCase));
-				var totalPocketLabelsCount = combinedPocket.Labels.Count();
+				var containedRecipientLabelsCount = pocket.Labels.Count(label => Recipient.Contains(label, StringComparer.OrdinalIgnoreCase));
+				var totalPocketLabelsCount = pocket.Labels.Count();
 				var totalRecipientLabelsCount = Recipient.Count();
 
-				var index = totalPocketLabelsCount == 0 || totalRecipientLabelsCount == 0
-					? 0
-					: ((double)containedRecipientLabelsCount / totalPocketLabelsCount) + ((double)containedRecipientLabelsCount / totalRecipientLabelsCount);
+				var index = ((double)containedRecipientLabelsCount / totalPocketLabelsCount) + ((double)containedRecipientLabelsCount / totalRecipientLabelsCount);
+				var pocketPrivacy = 1.0m / totalPocketLabelsCount;
 
-				var pocketPrivacy = totalPocketLabelsCount == 0 ? 0 : 1.0m / totalPocketLabelsCount;
-
-				return (Coins: combinedPocket.Coins, RecipientIndex: index, PocketPrivacy: pocketPrivacy, NumberOfPockets: tup.Item2);
+				return (Coins: pocket.Coins, RecipientIndex: index, PocketPrivacy: pocketPrivacy, NumberOfPockets: pocket.NumberOfCombinedPockets);
 			})
 			.Select(group => (
 				Coins: group.Coins,
@@ -93,17 +91,17 @@ public class SmartCoinSelector : ICoinSelector
 				Amount: group.Coins.Sum(x => x.Amount)
 			));
 
-		var privacyOrderedSayajinPockets = sayajinPockets
+		// Find the best pocket combination that we are going to use.
+		IEnumerable<SmartCoin> bestPocketCoins = sayajinPockets
 			.Where(group => group.Amount >= targetMoney)
 			.OrderBy(group => group.Unconfirmed)
 			.ThenByDescending(group => group.AnonymitySet) // Always try to spend/merge the largest anonset coins first.
 			.ThenByDescending(group => group.PocketRecipientIndex) // Select coins that known by the recipient.
 			.ThenByDescending(group => group.PocketPrivacy) // Select lesser-known coins.
 			.ThenBy(group => group.NumberOfPockets) // Avoid merging pockets as it is possible.
-			.ThenByDescending(group => group.Amount); // Then always try to spend by amount.
-		
-		// Find the best pocket combination that we are going to use.
-		IEnumerable<SmartCoin> bestPocketCoins = privacyOrderedSayajinPockets.First().Coins;
+			.ThenByDescending(group => group.Amount) // Then always try to spend by amount.
+			.First()
+			.Coins; 
 
 		var coinsInBestClusterByScript = bestPocketCoins
 			.GroupBy(c => c.ScriptPubKey)
