@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using System.Collections.Immutable;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -12,15 +13,17 @@ namespace WalletWasabi.Blockchain.TransactionBuilding;
 
 public class SmartCoinSelector : ICoinSelector
 {
-	public SmartCoinSelector(List<SmartCoin> unspentCoins, int privateThreshold)
+	public SmartCoinSelector(List<SmartCoin> unspentCoins, int privateThreshold, SmartLabel recipient)
 	{
 		PrivateThreshold = privateThreshold;
+		Recipient = recipient;
 		UnspentCoins = unspentCoins.Distinct().ToList();
 	}
 
 	private List<SmartCoin> UnspentCoins { get; }
 	private int IterationCount { get; set; }
 	public int PrivateThreshold { get; }
+	public SmartLabel Recipient { get; }
 
 	/// <param name="suggestion">We use this to detect if NBitcoin tries to suggest something different and indicate the error.</param>
 	/// <param name="target">Only <see cref="Money"/> type is really supported by this implementation.</param>
@@ -54,35 +57,53 @@ public class SmartCoinSelector : ICoinSelector
 		IEnumerable<Pocket> pockets = UnspentCoins.GetPockets(PrivateThreshold).ToImmutableArray();
 
 		// Build all the possible pockets, except when it's computationally too expensive.
-		List<Pocket> pocketCombinations = pockets.Count() < 10
+		List<(Pocket, int)> pocketCombinations = pockets.Count() < 10
 			? pockets
 				.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
-				.Select(pockets => pockets.Aggregate((current, pocket) => current + pocket))
+				.Select(pockets => (pockets.Aggregate((current, pocket) => current + pocket), pockets.Count()))
 				.ToList()
-			: new List<Pocket>();
+			: new List<(Pocket, int)>();
 
-		pocketCombinations.Add(new Pocket(("Selected unspent coins", new CoinsView(UnspentCoins))));
+		pocketCombinations.Add((new Pocket(("", new CoinsView(UnspentCoins))), pockets.Count()));
 
 		// This operation is doing super advanced grouping on the pockets and adding properties to each of them.
 		var sayajinPockets = pocketCombinations
-			.Select(pocket => (Coins: pocket.Coins, Privacy: 1.0m / (1 + pocket.Coins.Sum(x => x.HdPubKey.Cluster.Labels.Count()))))
+			.Select(tup =>
+			{
+				var combinedPocket = tup.Item1;
+				var containedRecipientLabelsCount = combinedPocket.Labels.Count(label => Recipient.Contains(label, StringComparer.OrdinalIgnoreCase));
+				var totalPocketLabelsCount = combinedPocket.Labels.Count();
+				var totalRecipientLabelsCount = Recipient.Count();
+
+				var index = totalPocketLabelsCount == 0 || totalRecipientLabelsCount == 0
+					? 0
+					: ((double)containedRecipientLabelsCount / totalPocketLabelsCount) + ((double)containedRecipientLabelsCount / totalRecipientLabelsCount);
+
+				var pocketPrivacy = totalPocketLabelsCount == 0 ? 0 : 1.0m / totalPocketLabelsCount;
+
+				return (Coins: combinedPocket.Coins, RecipientIndex: index, PocketPrivacy: pocketPrivacy, NumberOfPockets: tup.Item2);
+			})
 			.Select(group => (
 				Coins: group.Coins,
 				Unconfirmed: group.Coins.Any(x => !x.Confirmed),    // If group has an unconfirmed, then the whole group is unconfirmed.
 				AnonymitySet: group.Coins.Min(x => x.HdPubKey.AnonymitySet), // The group is as anonymous as its weakest member.
-				PocketPrivacy: group.Privacy, // The number people/entities that know the pocket.
+				PocketRecipientIndex: group.RecipientIndex, // An index for how acceptable is the pocket by taking the recipient into account. 0 -> Bad, 2 -> Perfect.
+				PocketPrivacy: group.PocketPrivacy, // The number people/entities that know the pocket.
+				NumberOfPockets: group.NumberOfPockets, // The number of how many pockets are combined into one.
 				Amount: group.Coins.Sum(x => x.Amount)
 			));
 
-		// Find the best pocket combination that we are going to use.
-		IEnumerable<SmartCoin> bestPocketCoins = sayajinPockets
+		var privacyOrderedSayajinPockets = sayajinPockets
 			.Where(group => group.Amount >= targetMoney)
 			.OrderBy(group => group.Unconfirmed)
-			.ThenByDescending(group => group.AnonymitySet)     // Always try to spend/merge the largest anonset coins first.
-			.ThenByDescending(group => group.PocketPrivacy)   // Select lesser-known coins.
-			.ThenByDescending(group => group.Amount)           // Then always try to spend by amount.
-			.First()
-			.Coins;
+			.ThenByDescending(group => group.AnonymitySet) // Always try to spend/merge the largest anonset coins first.
+			.ThenByDescending(group => group.PocketRecipientIndex) // Select coins that known by the recipient.
+			.ThenByDescending(group => group.PocketPrivacy) // Select lesser-known coins.
+			.ThenBy(group => group.NumberOfPockets) // Avoid merging pockets as it is possible.
+			.ThenByDescending(group => group.Amount); // Then always try to spend by amount.
+		
+		// Find the best pocket combination that we are going to use.
+		IEnumerable<SmartCoin> bestPocketCoins = privacyOrderedSayajinPockets.First().Coins;
 
 		var coinsInBestClusterByScript = bestPocketCoins
 			.GroupBy(c => c.ScriptPubKey)

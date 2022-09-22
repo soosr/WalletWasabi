@@ -99,12 +99,13 @@ public class TransactionFactory
 				}
 			}
 		}
-
+		
 		// Get and calculate fee
 		Logger.LogInfo("Calculating dynamic transaction fee...");
 
+		var recipients = new SmartLabel(payments.Requests.SelectMany(request => request.Label));
 		TransactionBuilder builder = Network.CreateTransactionBuilder();
-		builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs, KeyManager.AnonScoreTarget));
+		builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs, KeyManager.AnonScoreTarget, recipients));
 		builder.AddCoins(allowedSmartCoinInputs.Select(c => c.Coin));
 		builder.SetLockTime(lockTimeSelector());
 
