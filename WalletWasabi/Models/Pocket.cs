@@ -2,6 +2,7 @@ using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Models;
 
@@ -20,4 +21,16 @@ public class Pocket
 	public ICoinsView Coins { get; }
 
 	public static Pocket Empty => new((SmartLabel.Empty, new CoinsView(Enumerable.Empty<SmartCoin>())));
+
+	public Money EffectiveSumValue(FeeRate feeRate) => Coins.Sum(coin => coin.EffectiveValue(feeRate));
+
+	public static Pocket operator +(Pocket x, Pocket y)
+	{
+		var mergedLabels = SmartLabel.Merge(x.Labels, y.Labels);
+		var mergedCoins = new CoinsView(x.Coins.Concat(y.Coins));
+
+		return new Pocket((mergedLabels, mergedCoins));
+	}
+
+	public static Pocket operator +(Pocket[] pockets, Pocket p) => p + pockets.Aggregate((current, pocket) => current + pocket);
 }
