@@ -1341,7 +1341,7 @@ public class TransactionProcessorTests
 		transactionProcessor.Process(CreateCreditingTransaction(privateCoin2.P2wpkhScript, Money.Coins(1.0m)));
 		privateCoin2.SetAnonymitySet(targetAnonSet, 0);
 
-		var pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins, targetAnonSet);
+		var pockets = CoinPocketHelper.GetRawPockets(transactionProcessor.Coins, targetAnonSet);
 		var aPocket = pockets.Single(x => x.SmartLabel == "A");
 
 		Assert.Equal(3, aPocket.Coins.Count());
