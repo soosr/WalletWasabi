@@ -1,8 +1,9 @@
 ﻿using System.Linq;
-using WalletWasabi.Fluent.Models;
+using WalletWasabi.Models;
+using WalletWasabi.Tests.UnitTests.UserInterfaceTest;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.UserInterfaceTest;
+namespace WalletWasabi.Tests.UnitTests;
 
 public class PocketTests
 {
