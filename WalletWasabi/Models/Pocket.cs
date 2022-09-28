@@ -27,11 +27,11 @@ public class Pocket
 
 	public Money EffectiveSumValue(FeeRate feeRate) => Coins.Sum(coin => coin.EffectiveValue(feeRate));
 
-	public static Pocket operator +(Pocket x, Pocket y)
+	public static Pocket Merge(params Pocket[] pockets)
 	{
-		var mergedLabels = SmartLabel.Merge(x.Labels, y.Labels);
-		var mergedCoins = new CoinsView(x.Coins.Concat(y.Coins));
-		var numberOfCombinations = x.NumberOfCombinedPockets + y.NumberOfCombinedPockets;
+		var mergedLabels = SmartLabel.Merge(pockets.Select(p => p.Labels));
+		var mergedCoins = new CoinsView(pockets.SelectMany(x => x.Coins).ToHashSet());
+		var numberOfCombinations = pockets.Sum(p => p.NumberOfCombinedPockets);
 
 		return new Pocket((mergedLabels, mergedCoins))
 		{
@@ -39,5 +39,11 @@ public class Pocket
 		};
 	}
 
-	public static Pocket operator +(Pocket[] pockets, Pocket p) => p + pockets.Aggregate((current, pocket) => current + pocket);
+	public static Pocket Merge(Pocket[] pocketArray, params Pocket[] pockets)
+	{
+		var mergedPocketArray = Merge(pocketArray);
+		var mergedPockets = Merge(pockets);
+
+		return Merge(mergedPocketArray, mergedPockets);
+	}
 }
