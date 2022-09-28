@@ -61,11 +61,11 @@ public class SmartCoinSelector : ICoinSelector
 		List<Pocket> pocketCombinations = pockets.Count() < 10
 			? pockets
 				.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
-				.Select(pockets => pockets.Aggregate((current, pocket) => current + pocket))
+				.Select(pockets => Pocket.Merge(pockets.ToArray()))
 				.ToList()
 			: new List<Pocket>();
 
-		var unspentCoinsPocket = pockets.Aggregate((current, pocket) => current + pocket);
+		var unspentCoinsPocket = Pocket.Merge(pockets.ToArray());
 		pocketCombinations.Add(unspentCoinsPocket);
 
 		// This operation is doing super advanced grouping on the pockets and adding properties to each of them.
