@@ -16,7 +16,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 public partial class PrivacyBarViewModel : ActivatableViewModel
 {
 	private readonly IObservable<Unit> _updateTrigger;
-	private readonly SourceList<PrivacyBarItemViewModel> _itemsSourceList = new();
 
 	[AutoNotify] private double _width;
 
@@ -36,7 +35,11 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 	{
 		base.OnActivated(disposables);
 
-		_itemsSourceList
+		var source = new SourceList<PrivacyBarItemViewModel>();
+
+		source.DisposeWith(disposables);
+
+		source
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(Items)
@@ -47,17 +50,12 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 		_updateTrigger
 			.Select(_ => Wallet.GetPockets())
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(RefreshCoinsList)
+			.Subscribe(pockets => source.Edit(list => CreateSegments(list, pockets)))
 			.DisposeWith(disposables);
 
 		IsEmpty = _updateTrigger
 			.Select(_ => !Items.Any())
 			.ReplayLastActive();
-	}
-
-	private void RefreshCoinsList(IEnumerable<Pocket> pockets)
-	{
-		_itemsSourceList.Edit(list => CreateSegments(list, pockets));
 	}
 
 	private void CreateSegments(IExtendedList<PrivacyBarItemViewModel> list, IEnumerable<Pocket> pockets)
