@@ -5,6 +5,7 @@ using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Threading;
 using Microsoft.AspNetCore.Server.IIS.Core;
@@ -15,46 +16,47 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
-public partial class PrivacyBarViewModel : ViewModelBase
+public partial class PrivacyBarViewModel : ActivatableViewModel
 {
+	private readonly IObservable<Unit> _updateTrigger;
 	private readonly SourceList<PrivacyBarItemViewModel> _itemsSourceList = new();
-	private IObservable<Unit> _coinsUpdated;
 
 	[AutoNotify] private double _width;
 
-	public PrivacyBarViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
+	public PrivacyBarViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
 	{
+		_updateTrigger = updateTrigger;
 		Wallet = walletViewModel.Wallet;
+	}
+
+	public IObservable<bool> IsEmpty { get; set; } = Observable.Empty<bool>();
+
+	public ObservableCollectionExtended<PrivacyBarItemViewModel> Items { get; } = new();
+
+	public Wallet Wallet { get; }
+
+	protected override void OnActivated(CompositeDisposable disposables)
+	{
+		base.OnActivated(disposables);
 
 		_itemsSourceList
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(Items)
 			.DisposeMany()
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(disposables);
 
-		_coinsUpdated =
-			balanceChanged.ToSignal()
-						  .Merge(walletViewModel
-						  .WhenAnyValue(w => w.IsCoinJoining)
-						  .ToSignal());
-
-		_coinsUpdated
-			.CombineLatest(this.WhenAnyValue(x => x.Width))
-			.Select(_ => walletViewModel.Wallet.GetPockets())
+		_updateTrigger
+			.Select(_ => Wallet.GetPockets())
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(RefreshCoinsList);
+			.Subscribe(RefreshCoinsList)
+			.DisposeWith(disposables);
 
-		IsEmpty = _coinsUpdated
+		IsEmpty = _updateTrigger
 			.Select(_ => !Items.Any())
 			.ReplayLastActive();
 	}
-
-	public IObservable<bool> IsEmpty { get; }
-
-	public ObservableCollectionExtended<PrivacyBarItemViewModel> Items { get; } = new();
-
-	public Wallet Wallet { get; }
 
 	private void RefreshCoinsList(IEnumerable<Pocket> pockets)
 	{
@@ -155,10 +157,5 @@ public partial class PrivacyBarViewModel : ViewModelBase
 
 			start += width + margin;
 		}
-	}
-
-	public void Dispose()
-	{
-		_itemsSourceList.Dispose();
 	}
 }
