@@ -43,6 +43,8 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 	{
 		base.OnActivated(disposables);
 
+		PrivacyBar?.Activate(disposables);
+
 		_balanceChanged
 			.Subscribe(_ => Update())
 			.DisposeWith(disposables);
