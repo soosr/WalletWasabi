@@ -21,7 +21,7 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 	[AutoNotify] private string _balancePrivateBtc = "";
 	[AutoNotify] private bool _hasPrivateBalance;
 
-	public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged, bool showPrivacyBar = true)
+	public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged, bool enablePrivacyBar = true)
 	{
 		_wallet = walletVm.Wallet;
 		_walletVm = walletVm;
@@ -29,7 +29,7 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 
 		ShowDetailsCommand = ReactiveCommand.Create(ShowDetails);
 
-		if (showPrivacyBar)
+		if (enablePrivacyBar)
 		{
 			PrivacyBar = new PrivacyBarViewModel(_walletVm, _balanceChanged);
 		}
