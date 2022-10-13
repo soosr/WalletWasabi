@@ -20,7 +20,6 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 	[AutoNotify] private string _percentText = "";
 	[AutoNotify] private string _balancePrivateBtc = "";
 	[AutoNotify] private bool _hasPrivateBalance;
-	[AutoNotify] private bool _showPrivacyBar;
 
 	public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged, bool showPrivacyBar = true)
 	{
