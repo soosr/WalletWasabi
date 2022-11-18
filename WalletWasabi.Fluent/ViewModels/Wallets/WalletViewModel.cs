@@ -108,8 +108,6 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this)));
 
-		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!wallet.KeyManager.IsWatchOnly));
-
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(this);
 
 		Tiles = GetTiles().ToList();
@@ -142,8 +140,6 @@ public partial class WalletViewModel : WalletViewModelBase
 	public ICommand WalletStatsCommand { get; }
 
 	public ICommand WalletCoinsCommand { get; }
-
-	public ICommand CoinJoinSettingsCommand { get; }
 
 	private CompositeDisposable Disposables { get; }
 

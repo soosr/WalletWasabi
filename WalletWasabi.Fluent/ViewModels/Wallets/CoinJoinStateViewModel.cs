@@ -92,6 +92,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		walletVm.UiTriggers.TransactionsUpdateTrigger.Subscribe(_ => _stateMachine.Fire(Trigger.BalanceChanged));
 
+		SettingsCommand = ReactiveCommand.Create(() => NavigationState.Instance.DialogScreenNavigation.To(walletVm.CoinJoinSettings));
+
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			if (!wallet.KeyManager.IsCoinjoinProfileSelected)
@@ -175,6 +177,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private bool IsCounting => _countdownTimer.IsEnabled;
 
 	public ICommand PlayCommand { get; }
+
+	public ICommand SettingsCommand { get; }
 
 	public ICommand StopPauseCommand { get; }
 

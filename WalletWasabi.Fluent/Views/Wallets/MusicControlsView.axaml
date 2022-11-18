@@ -41,7 +41,7 @@
             BorderThickness="1,1,1,0">
       <Panel DataContext="{Binding CoinJoinStateViewModel}">
         <Panel Background="{DynamicResource TileRegionColor}" Opacity="0.35" />
-        <Grid ColumnDefinitions="80, 350, 25, 70" Margin="0 5">
+        <Grid ColumnDefinitions="80, 350, 25, 75" Margin="0 5">
 
           <Image Grid.Column="0" Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center" Source="{DynamicResource wasabi_logo_dynamic}" />
 
@@ -90,6 +90,15 @@
                 <Setter Property="VerticalAlignment" Value="Center" />
               </Style>
             </Panel.Styles>
+
+            <Button Classes="plain"
+                    Command="{Binding SettingsCommand}"
+                    Opacity="0.4"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Margin="0 -1 -0.5 0">
+              <PathIcon Data="{StaticResource nav_settings_24_regular}" Height="14" />
+            </Button>
 
             <Button Classes="plain centralize"
                     IsVisible="{Binding PlayVisible}"
