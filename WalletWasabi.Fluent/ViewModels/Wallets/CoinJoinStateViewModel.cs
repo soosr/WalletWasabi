@@ -92,7 +92,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		walletVm.UiTriggers.TransactionsUpdateTrigger.Subscribe(_ => _stateMachine.Fire(Trigger.BalanceChanged));
 
-		SettingsCommand = ReactiveCommand.Create(() => NavigationState.Instance.DialogScreenNavigation.To(walletVm.CoinJoinSettings));
+		SettingsCommand = ReactiveCommand.Create(() => RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(walletVm.CoinJoinSettings));
+		SelectCoinjoinProfileCommand = ReactiveCommand.CreateFromTask(async () =>
+		{
+			await RoutableViewModel.NavigateDialogAsync(new CoinJoinProfilesViewModel(wallet.KeyManager, false), NavigationTarget.DialogScreen);
+			walletVm.CoinJoinSettings.AnonScoreTarget = wallet.KeyManager.AnonScoreTarget;
+		});
 
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -179,6 +184,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	public ICommand PlayCommand { get; }
 
 	public ICommand SettingsCommand { get; }
+
+	public ICommand SelectCoinjoinProfileCommand { get; }
 
 	public ICommand StopPauseCommand { get; }
 

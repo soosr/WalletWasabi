@@ -92,12 +92,25 @@
             </Panel.Styles>
 
             <Button Classes="plain"
-                    Command="{Binding SettingsCommand}"
-                    Opacity="0.4"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Top"
-                    Margin="0 -1 -0.5 0">
-              <PathIcon Data="{StaticResource nav_settings_24_regular}" Height="14" />
+                    Margin="0 -5 3 0"
+                    Opacity="0.3">
+              <Button.Flyout>
+                <MenuFlyout Placement="TopEdgeAlignedLeft">
+                  <MenuItem Header="Coinjoin Settings" Command="{Binding SettingsCommand}">
+                    <MenuItem.Icon>
+                      <PathIcon Data="{StaticResource wallet_action_coinjoin}" />
+                    </MenuItem.Icon>
+                  </MenuItem>
+                  <MenuItem Header="Coinjoin Strategy" Command="{Binding SelectCoinjoinProfileCommand}">
+                    <MenuItem.Icon>
+                      <PathIcon Data="{StaticResource wallet_action_coinjoin}" />
+                    </MenuItem.Icon>
+                  </MenuItem>
+                </MenuFlyout>
+              </Button.Flyout>
+              <PathIcon Data="{StaticResource more_regular}" Foreground="{DynamicResource TextForegroundColor}" />
             </Button>
 
             <Button Classes="plain centralize"
