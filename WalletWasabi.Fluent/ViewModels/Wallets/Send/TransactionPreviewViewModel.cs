@@ -386,7 +386,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		else
 		{
 			var doSilentPocketSelection = reason == BuildTransactionReason.Initialization;
-			_info.MinimumRequiredAmount = minimumRequiredAmount;
 
 			var selectPocketsDialog =
 				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, usedCoins: Transaction?.SpentCoins, isSilent: doSilentPocketSelection));
