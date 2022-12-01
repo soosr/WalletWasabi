@@ -26,16 +26,16 @@
       <Setter Property="Height" Value="{DynamicResource MenuFlyoutSeparatorThemeHeight}" />
     </Style>
 
-    <Style Selector="c|NavBarItem">
+    <Style Selector="c|NavBarItem" x:DataType="vm:NavBarItemViewModel">
       <Setter Property="Width" Value="75" />
       <Setter Property="Height" Value="55" />
       <Setter Property="Margin" Value="4 1" />
       <Setter Property="Padding" Value="0" />
       <Setter Property="Background" Value="Transparent" />
-    </Style>
-
-    <Style Selector="c|NavBarItem:disabled /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="IsSelectable" Value="{Binding IsSelectable}" />
+      <Setter Property="IsSelected" Value="{Binding IsSelected}" />
+      <Setter Property="Command" Value="{Binding OpenCommand}" />
     </Style>
 
     <Style Selector="c|NavBarItem StackPanel">
@@ -55,6 +55,7 @@
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="Data" Value="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
 
@@ -67,6 +68,19 @@
           <DoubleTransition Property="Opacity" Duration="0:0:0.175" Easing="1,0,1,0" />
         </Transitions>
       </Setter>
+    </Style>
+
+    <Style Selector="c|NavBarItem:selected StackPanel LayoutTransformControl">
+      <Setter Property="LayoutTransform" Value="scaleY(0)" />
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+
+    <Style Selector="c|NavBarItem:selected PathIcon" x:CompileBindings="False">
+      <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+    </Style>
+
+    <Style Selector="c|NavBarItem:disabled /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
     </Style>
 
     <Style Selector="c|NavBarItem Ellipse">
@@ -82,15 +96,6 @@
           <BrushTransition Property="Fill" Duration="0:0:2" />
         </Transitions>
       </Setter>
-    </Style>
-
-    <Style Selector="c|NavBarItem:selected StackPanel LayoutTransformControl">
-      <Setter Property="LayoutTransform" Value="scaleY(0)" />
-      <Setter Property="Opacity" Value="0" />
-    </Style>
-
-    <Style Selector="c|NavBarItem:selected PathIcon" x:CompileBindings="False">
-      <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
 
     <Style Selector="c|NavBarItem Ellipse:not(.isLoading).isLoggedIn">
@@ -111,10 +116,6 @@
       <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
     </Style>
 
-    <Style Selector="c|NavBarItem" x:DataType="vm:NavBarItemViewModel">
-      <Setter Property="IsSelectable" Value="{Binding IsSelectable}" />
-    </Style>
-
   </UserControl.Styles>
 
   <DockPanel Margin="0 0 0 5">
@@ -128,10 +129,9 @@
         </ItemsControl.ItemsPanel>
         <ItemsControl.DataTemplates>
           <DataTemplate DataType="vm:NavBarItemViewModel">
-            <c:NavBarItem Cursor="Hand"
-                          Command="{Binding OpenCommand}">
+            <c:NavBarItem>
               <StackPanel>
-                <PathIcon Foreground="{DynamicResource AcrylicTrimForeground}" Classes="new size24" />
+                <PathIcon Classes="new size24" />
                 <LayoutTransformControl>
                   <c:FadeOutTextBlock Text="{Binding Title}" />
                 </LayoutTransformControl>
@@ -148,16 +148,13 @@
                     VerticalAlignment="Stretch">
         <ItemsControl.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
-            <c:NavBarItem ToolTip.Tip="{Binding Title}"
-                          Cursor="Hand"
-                          IsSelected="{Binding IsSelected}"
-                          Command="{Binding OpenCommand}">
+            <c:NavBarItem ToolTip.Tip="{Binding Title}">
               <Panel>
                 <Ellipse Classes.isLoading="{Binding IsLoading}"
                          Classes.isLoggedIn="{Binding IsLoggedIn}"
                          Classes.isCoinjoining="{Binding IsCoinJoining}" />
                 <StackPanel>
-                  <PathIcon Foreground="{DynamicResource AcrylicTrimForeground}" Classes="new size24" />
+                  <PathIcon Classes="new size24" />
                   <LayoutTransformControl>
                     <c:FadeOutTextBlock Text="{Binding Title}" />
                   </LayoutTransformControl>
