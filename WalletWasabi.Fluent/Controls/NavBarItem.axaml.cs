@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.Controls;
 /// Container for NavBarItems.
 /// </summary>
 [PseudoClasses(":horizontal", ":vertical", ":selectable")]
-public class NavBarItem : ListBoxItem
+public class NavBarItem : Button
 {
 	public static readonly StyledProperty<IconElement> IconProperty =
 		AvaloniaProperty.Register<NavBarItem, IconElement>(nameof(Icon));
