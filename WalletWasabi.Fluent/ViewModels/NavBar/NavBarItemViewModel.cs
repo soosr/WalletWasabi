@@ -1,4 +1,4 @@
-using System.Reactive.Linq;
+using System.Threading.Tasks;
 using ReactiveUI;
 using System.Windows.Input;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -20,7 +20,7 @@ public abstract class NavBarItemViewModel : RoutableViewModel
 	{
 		SelectionMode = NavBarItemSelectionMode.Selected;
 
-		OpenCommand = ReactiveCommand.Create(() =>
+		OpenCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			if (IsSelected)
 			{
@@ -28,7 +28,7 @@ public abstract class NavBarItemViewModel : RoutableViewModel
 			}
 
 			IsSelected = true;
-			OnOpen(defaultNavigationMode);
+			await OnOpen(defaultNavigationMode);
 		});
 	}
 
@@ -55,7 +55,7 @@ public abstract class NavBarItemViewModel : RoutableViewModel
 
 	public ICommand OpenCommand { get; }
 
-	protected virtual void OnOpen(NavigationMode defaultNavigationMode)
+	protected virtual Task OnOpen(NavigationMode defaultNavigationMode)
 	{
 		if (SelectionMode == NavBarItemSelectionMode.Toggle)
 		{
@@ -65,6 +65,8 @@ public abstract class NavBarItemViewModel : RoutableViewModel
 		{
 			Navigate().To(this, defaultNavigationMode);
 		}
+
+		return Task.CompletedTask;
 	}
 
 	public virtual void Toggle()

@@ -1,5 +1,5 @@
 using System.Reactive.Disposables;
-using ReactiveUI;
+using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
@@ -25,7 +25,7 @@ public class ClosedWalletViewModel : WalletViewModelBase
 		IsLoading = true;
 	}
 
-	protected override void OnOpen(NavigationMode defaultNavigationMode)
+	protected override async Task OnOpen(NavigationMode defaultNavigationMode)
 	{
 		if (!Wallet.IsLoggedIn)
 		{
@@ -33,7 +33,7 @@ public class ClosedWalletViewModel : WalletViewModelBase
 		}
 		else
 		{
-			base.OnOpen(defaultNavigationMode);
+			await base.OnOpen(defaultNavigationMode);
 		}
 	}
 

@@ -94,7 +94,7 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.RecoverWallet));
 	}
 
-	protected override async void OnOpen(NavigationMode defaultNavigationMode)
+	protected override async Task OnOpen(NavigationMode defaultNavigationMode)
 	{
 		MainViewModel.Instance.IsOobeBackgroundVisible = true;
 		await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
