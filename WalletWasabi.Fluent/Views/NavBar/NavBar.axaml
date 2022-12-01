@@ -111,6 +111,10 @@
       <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
     </Style>
 
+    <Style Selector="c|NavBarItem" x:DataType="vm:NavBarItemViewModel">
+      <Setter Property="IsSelectable" Value="{Binding IsSelectable}" />
+    </Style>
+
   </UserControl.Styles>
 
   <DockPanel Margin="0 0 0 5">
