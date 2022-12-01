@@ -84,12 +84,12 @@
       </Setter>
     </Style>
 
-    <Style Selector="c|NavBarItem.selected StackPanel LayoutTransformControl">
+    <Style Selector="c|NavBarItem:selected StackPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(0)" />
       <Setter Property="Opacity" Value="0" />
     </Style>
 
-    <Style Selector="c|NavBarItem.selected PathIcon" x:CompileBindings="False">
+    <Style Selector="c|NavBarItem:selected PathIcon" x:CompileBindings="False">
       <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
 
@@ -125,7 +125,6 @@
         <ItemsControl.DataTemplates>
           <DataTemplate DataType="vm:NavBarItemViewModel">
             <c:NavBarItem Cursor="Hand"
-                          Classes.selected="{Binding IsSelected}"
                           Command="{Binding OpenCommand}">
               <StackPanel>
                 <PathIcon Foreground="{DynamicResource AcrylicTrimForeground}" Classes="new size24" />
@@ -147,7 +146,7 @@
           <DataTemplate DataType="vmw:WalletViewModelBase">
             <c:NavBarItem ToolTip.Tip="{Binding Title}"
                           Cursor="Hand"
-                          Classes.selected="{Binding IsSelected}"
+                          IsSelected="{Binding IsSelected}"
                           Command="{Binding OpenCommand}">
               <Panel>
                 <Ellipse Classes.isLoading="{Binding IsLoading}"
