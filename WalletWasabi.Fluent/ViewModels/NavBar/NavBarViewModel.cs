@@ -9,16 +9,17 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar;
 /// <summary>
 /// The ViewModel that represents the structure of the sidebar.
 /// </summary>
-public partial class NavBarViewModel : ViewModelBase
+public class NavBarViewModel : ViewModelBase
 {
-	[AutoNotify] private ObservableCollection<NavBarItemViewModel> _topItems;
-	[AutoNotify] private ObservableCollection<NavBarItemViewModel> _bottomItems;
-
-	public NavBarViewModel(TargettedNavigationStack mainScreen)
+	public NavBarViewModel()
 	{
-		_topItems = new ObservableCollection<NavBarItemViewModel>();
-		_bottomItems = new ObservableCollection<NavBarItemViewModel>();
+		TopItems = new ObservableCollection<NavBarItemViewModel>();
+		BottomItems = new ObservableCollection<NavBarItemViewModel>();
 	}
+
+	public ObservableCollection<NavBarItemViewModel> TopItems { get; }
+
+	public ObservableCollection<NavBarItemViewModel> BottomItems { get; }
 
 	public ObservableCollection<WalletViewModelBase> Wallets => UiServices.WalletManager.Wallets;
 
@@ -34,7 +35,7 @@ public partial class NavBarViewModel : ViewModelBase
 
 			if (viewModel is NavBarItemViewModel navBarItem)
 			{
-				_topItems.Add(navBarItem);
+				TopItems.Add(navBarItem);
 			}
 		}
 
@@ -44,7 +45,7 @@ public partial class NavBarViewModel : ViewModelBase
 
 			if (viewModel is NavBarItemViewModel navBarItem)
 			{
-				_bottomItems.Add(navBarItem);
+				BottomItems.Add(navBarItem);
 			}
 		}
 	}
