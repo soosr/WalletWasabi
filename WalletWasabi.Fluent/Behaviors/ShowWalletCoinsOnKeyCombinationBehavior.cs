@@ -92,7 +92,7 @@ public class ShowWalletCoinsOnKeyCombinationBehavior : DisposingBehavior<Control
 	{
 		wallet = null;
 
-		if (UiServices.WalletManager.CurrentSelectedWallet is WalletViewModel { IsLoggedIn: true, IsActive: true } walletViewModel &&
+		if (UiServices.WalletManager.SelectedWallet is WalletViewModel { IsLoggedIn: true, IsActive: true } walletViewModel &&
 		    walletViewModel.WalletCoinsCommand.CanExecute(default))
 		{
 			wallet = walletViewModel;

@@ -39,7 +39,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 			.Select(x => x.Sender)
 			.Subscribe(selectedWallet =>
 			{
-				CurrentSelectedWallet = selectedWallet;
+				SelectedWallet = selectedWallet;
 				Services.UiConfig.LastSelectedWallet = selectedWallet.WalletName;
 
 				foreach (var wallet in Wallets.Where(x => x != selectedWallet))
@@ -127,7 +127,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	public ObservableCollection<WalletViewModelBase> Wallets => _wallets;
 
-	public WalletViewModelBase? CurrentSelectedWallet { get; private set; }
+	public WalletViewModelBase? SelectedWallet { get; private set; }
 
 	public WalletViewModel GetWalletViewModel(Wallet wallet)
 	{
@@ -168,7 +168,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 		var walletViewModelItem = OpenWallet(closedWalletViewModel.Wallet);
 
-		if (CurrentSelectedWallet == closedWalletViewModel && walletViewModelItem.OpenCommand.CanExecute(default))
+		if (SelectedWallet == closedWalletViewModel && walletViewModelItem.OpenCommand.CanExecute(default))
 		{
 			walletViewModelItem.OpenCommand.Execute(default);
 		}
