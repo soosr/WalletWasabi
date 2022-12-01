@@ -1,3 +1,4 @@
+using System.Reactive.Linq;
 using ReactiveUI;
 using System.Windows.Input;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -23,7 +24,7 @@ public abstract class NavBarItemViewModel : RoutableViewModel
 		{
 			IsSelected = true;
 			OnOpen(defaultNavigationMode);
-		});
+		}, this.WhenAnyValue(x => x.IsSelected).Select(x => !x));
 	}
 
 	public NavBarItemSelectionMode SelectionMode { get; protected init; }

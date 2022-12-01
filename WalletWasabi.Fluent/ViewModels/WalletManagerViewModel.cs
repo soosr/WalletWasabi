@@ -37,15 +37,15 @@ public partial class WalletManagerViewModel : ViewModelBase
 			.WhenPropertyChanged(x => x.IsSelected)
 			.Where(x => x.Value)
 			.Select(x => x.Sender)
-			.Subscribe(selectedWallet =>
+			.Subscribe(newSelectedWallet =>
 			{
-				SelectedWallet = selectedWallet;
-				Services.UiConfig.LastSelectedWallet = selectedWallet.WalletName;
-
-				foreach (var wallet in Wallets.Where(x => x != selectedWallet))
+				if (SelectedWallet is { })
 				{
-					wallet.IsSelected = false;
+					SelectedWallet.IsSelected = false;
 				}
+
+				SelectedWallet = newSelectedWallet;
+				Services.UiConfig.LastSelectedWallet = newSelectedWallet.WalletName;
 			});
 
 		Observable
