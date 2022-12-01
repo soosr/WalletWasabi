@@ -9,7 +9,6 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -21,8 +20,6 @@ public partial class WalletManagerViewModel : ViewModelBase
 	private readonly SourceList<WalletViewModelBase> _walletsSourceList = new();
 	private readonly ObservableCollectionExtended<WalletViewModelBase> _wallets = new();
 
-	private NavBarItemViewModel? _currentSelection;
-	[AutoNotify] private WalletViewModelBase? _selectedWallet;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
 
 	public WalletManagerViewModel()
@@ -42,6 +39,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 			.Select(x => x.Sender)
 			.Subscribe(selectedWallet =>
 			{
+				CurrentSelectedWallet = selectedWallet;
 				Services.UiConfig.LastSelectedWallet = selectedWallet.WalletName;
 
 				foreach (var wallet in Wallets.Where(x => x != selectedWallet))
@@ -129,6 +127,8 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	public ObservableCollection<WalletViewModelBase> Wallets => _wallets;
 
+	public WalletViewModelBase? CurrentSelectedWallet { get; private set; }
+
 	public WalletViewModel GetWalletViewModel(Wallet wallet)
 	{
 		if (TryGetWalletViewModel(wallet, out var walletViewModel) && walletViewModel is WalletViewModel result)
@@ -168,9 +168,9 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 		var walletViewModelItem = OpenWallet(closedWalletViewModel.Wallet);
 
-		if (_currentSelection == closedWalletViewModel)
+		if (CurrentSelectedWallet == closedWalletViewModel && walletViewModelItem.OpenCommand.CanExecute(default))
 		{
-			SelectedWallet = walletViewModelItem;
+			walletViewModelItem.OpenCommand.Execute(default);
 		}
 
 		IsLoadingWallet = false;
@@ -213,35 +213,6 @@ public partial class WalletManagerViewModel : ViewModelBase
 		{
 			walletToSelect.OpenCommand.Execute(default);
 		}
-	}
-
-	public NavBarItemViewModel? SelectionChanged(NavBarItemViewModel item)
-	{
-		if (item.SelectionMode == NavBarItemSelectionMode.Selected)
-		{
-			_currentSelection = item;
-		}
-
-		if (IsLoadingWallet || SelectedWallet == item)
-		{
-			return default;
-		}
-
-		var result = default(NavBarItemViewModel);
-
-		if (SelectedWallet is { IsLoggedIn: true } && item is WalletViewModelBase && SelectedWallet != item)
-		{
-			SelectedWallet = null;
-			result = item;
-		}
-
-		if (item is WalletViewModel { IsLoggedIn: true } walletViewModelItem)
-		{
-			SelectedWallet = walletViewModelItem;
-			result = item;
-		}
-
-		return result;
 	}
 
 	private bool TryGetWalletViewModel(Wallet wallet, [NotNullWhen(true)] out WalletViewModelBase? walletViewModel)
