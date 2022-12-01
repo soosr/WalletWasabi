@@ -31,7 +31,6 @@
       <Setter Property="Height" Value="55" />
       <Setter Property="Margin" Value="4 1" />
       <Setter Property="Padding" Value="0" />
-      <Setter Property="Background" Value="Transparent" />
       <Setter Property="Cursor" Value="Hand" />
       <Setter Property="IsSelectable" Value="{Binding IsSelectable}" />
       <Setter Property="IsSelected" Value="{Binding IsSelected}" />
@@ -39,7 +38,6 @@
     </Style>
 
     <Style Selector="c|NavBarItem StackPanel">
-      <Setter Property="Background" Value="Transparent" />
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="Spacing" Value="2" />
     </Style>
@@ -49,10 +47,9 @@
       <Setter Property="FontSize" Value="{StaticResource FontSizeH9}" />
     </Style>
 
-    <Style Selector="c|NavBarItem StackPanel > PathIcon" x:CompileBindings="False">
+    <Style Selector="c|NavBarItem StackPanel PathIcon" x:CompileBindings="False">
       <Setter Property="Width" Value="24" />
       <Setter Property="Height" Value="24" />
-      <Setter Property="Background" Value="Transparent" />
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="HorizontalAlignment" Value="Center" />
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
@@ -77,10 +74,6 @@
 
     <Style Selector="c|NavBarItem:selected PathIcon" x:CompileBindings="False">
       <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
-    </Style>
-
-    <Style Selector="c|NavBarItem:disabled /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="Transparent" />
     </Style>
 
     <Style Selector="c|NavBarItem Ellipse">
@@ -119,34 +112,35 @@
   </UserControl.Styles>
 
   <DockPanel Margin="0 0 0 5">
-    <DockPanel Background="Transparent" DockPanel.Dock="Bottom">
-      <ItemsControl Items="{Binding BottomItems}"
-                    VerticalAlignment="Stretch">
-        <ItemsControl.ItemsPanel>
-          <ItemsPanelTemplate>
-            <ReversibleStackPanel ReverseOrder="True" />
-          </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-        <ItemsControl.DataTemplates>
-          <DataTemplate DataType="vm:NavBarItemViewModel">
-            <c:NavBarItem>
-              <StackPanel>
-                <PathIcon Classes="new size24" />
-                <LayoutTransformControl>
-                  <c:FadeOutTextBlock Text="{Binding Title}" />
-                </LayoutTransformControl>
-              </StackPanel>
-            </c:NavBarItem>
-          </DataTemplate>
-        </ItemsControl.DataTemplates>
-      </ItemsControl>
-    </DockPanel>
+
+    <!-- Bottom items -->
+    <ItemsControl Items="{Binding BottomItems}"
+                  DockPanel.Dock="Bottom">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <ReversibleStackPanel ReverseOrder="True" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.DataTemplates>
+        <DataTemplate DataType="vm:NavBarItemViewModel">
+          <c:NavBarItem>
+            <StackPanel>
+              <PathIcon Classes="new size24" />
+              <LayoutTransformControl>
+                <c:FadeOutTextBlock Text="{Binding Title}" />
+              </LayoutTransformControl>
+            </StackPanel>
+          </c:NavBarItem>
+        </DataTemplate>
+      </ItemsControl.DataTemplates>
+    </ItemsControl>
+
+    <!-- Separator -->
     <Separator DockPanel.Dock="Bottom" />
+
     <!-- Wallet List -->
-    <ScrollViewer Background="Transparent">
-      <DockPanel>
-        <ItemsControl Items="{Binding Wallets}"
-                      VerticalAlignment="Stretch">
+    <ScrollViewer>
+      <ItemsControl Items="{Binding Wallets}">
         <ItemsControl.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
             <c:NavBarItem ToolTip.Tip="{Binding Title}">
@@ -164,8 +158,8 @@
             </c:NavBarItem>
           </DataTemplate>
         </ItemsControl.DataTemplates>
-        </ItemsControl>
-      </DockPanel>
+      </ItemsControl>
     </ScrollViewer>
+
   </DockPanel>
 </UserControl>

@@ -98,6 +98,7 @@
   <!-- Disabled State -->
   <Style Selector="c|NavBarItem:disabled /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Opacity" Value="0.5" />
+    <Setter Property="Background" Value="Transparent" />
   </Style>
 
   <!-- PointerOver State -->
