@@ -42,6 +42,8 @@ public partial class WalletManagerViewModel : ViewModelBase
 			.Select(x => x.Sender)
 			.Subscribe(selectedWallet =>
 			{
+				Services.UiConfig.LastSelectedWallet = selectedWallet.WalletName;
+
 				foreach (var wallet in Wallets.Where(x => x != selectedWallet))
 				{
 					wallet.IsSelected = false;
@@ -203,6 +205,13 @@ public partial class WalletManagerViewModel : ViewModelBase
 		foreach (var wallet in Services.WalletManager.GetWallets())
 		{
 			InsertWallet(ClosedWalletViewModel.Create(wallet));
+		}
+
+		var walletToSelect = Wallets.FirstOrDefault(item => item.WalletName == Services.UiConfig.LastSelectedWallet) ?? Wallets.FirstOrDefault();
+
+		if (walletToSelect is { } && walletToSelect.OpenCommand.CanExecute(default))
+		{
+			walletToSelect.OpenCommand.Execute(default);
 		}
 	}
 

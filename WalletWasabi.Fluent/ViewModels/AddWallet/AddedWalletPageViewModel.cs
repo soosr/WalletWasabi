@@ -40,7 +40,6 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 
 		if (wallet is { } && navBar is { })
 		{
-			navBar.SelectedItem = wallet;
 			wallet.OpenCommand.Execute(default);
 		}
 	}

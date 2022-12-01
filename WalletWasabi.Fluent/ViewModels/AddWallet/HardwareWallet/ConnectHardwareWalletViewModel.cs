@@ -83,7 +83,6 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 		if (ExistingWallet is { } && navBar is { })
 		{
-			navBar.SelectedItem = ExistingWallet;
 			Navigate().Clear();
 			ExistingWallet.OpenCommand.Execute(default);
 		}
