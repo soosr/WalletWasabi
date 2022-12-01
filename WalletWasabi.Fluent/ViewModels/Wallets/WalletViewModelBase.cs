@@ -3,7 +3,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 
@@ -23,8 +22,6 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 
 		_title = WalletName;
 		WalletState = wallet.State;
-
-		OpenCommand = ReactiveCommand.Create(() => Navigate().To(this, NavigationMode.Clear));
 
 		SetIcon();
 

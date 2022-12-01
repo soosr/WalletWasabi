@@ -34,6 +34,20 @@ public partial class WalletManagerViewModel : ViewModelBase
 			.Bind(_wallets)
 			.Subscribe();
 
+		_walletsSourceList
+			.Connect()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.WhenPropertyChanged(x => x.IsSelected)
+			.Where(x => x.Value)
+			.Select(x => x.Sender)
+			.Subscribe(selectedWallet =>
+			{
+				foreach (var wallet in Wallets.Where(x => x != selectedWallet))
+				{
+					wallet.IsSelected = false;
+				}
+			});
+
 		Observable
 			.FromEventPattern<WalletState>(Services.WalletManager, nameof(WalletManager.WalletStateChanged))
 			.ObserveOn(RxApp.MainThreadScheduler)

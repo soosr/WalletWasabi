@@ -11,7 +11,6 @@ public class ClosedWalletViewModel : WalletViewModelBase
 	protected ClosedWalletViewModel(Wallet wallet)
 		: base(wallet)
 	{
-		OpenCommand = ReactiveCommand.Create(OnOpen);
 	}
 
 	public LoadingViewModel? Loading { get; private set; }
@@ -26,7 +25,7 @@ public class ClosedWalletViewModel : WalletViewModelBase
 		IsLoading = true;
 	}
 
-	private void OnOpen()
+	protected override void OnOpen(NavigationMode defaultNavigationMode)
 	{
 		if (!Wallet.IsLoggedIn)
 		{
@@ -34,7 +33,7 @@ public class ClosedWalletViewModel : WalletViewModelBase
 		}
 		else
 		{
-			Navigate().To(this, NavigationMode.Clear);
+			base.OnOpen(defaultNavigationMode);
 		}
 	}
 

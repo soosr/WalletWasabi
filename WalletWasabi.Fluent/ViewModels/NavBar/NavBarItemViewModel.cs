@@ -19,8 +19,11 @@ public abstract class NavBarItemViewModel : RoutableViewModel
 	{
 		SelectionMode = NavBarItemSelectionMode.Selected;
 
-		OpenCommand = ReactiveCommand.Create(
-			() => OnOpen(defaultNavigationMode));
+		OpenCommand = ReactiveCommand.Create(() =>
+		{
+			IsSelected = true;
+			OnOpen(defaultNavigationMode);
+		});
 	}
 
 	public NavBarItemSelectionMode SelectionMode { get; protected init; }
@@ -44,9 +47,9 @@ public abstract class NavBarItemViewModel : RoutableViewModel
 		}
 	}
 
-	public ICommand OpenCommand { get; protected set; }
+	public ICommand OpenCommand { get; }
 
-	private void OnOpen(NavigationMode defaultNavigationMode)
+	protected virtual void OnOpen(NavigationMode defaultNavigationMode)
 	{
 		if (SelectionMode == NavBarItemSelectionMode.Toggle)
 		{
