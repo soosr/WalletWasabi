@@ -31,23 +31,6 @@ public partial class WalletManagerViewModel : ViewModelBase
 			.Bind(_wallets)
 			.Subscribe();
 
-		_walletsSourceList
-			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.WhenPropertyChanged(x => x.IsSelected)
-			.Where(x => x.Value)
-			.Select(x => x.Sender)
-			.Subscribe(newSelectedWallet =>
-			{
-				if (SelectedWallet is { })
-				{
-					SelectedWallet.IsSelected = false;
-				}
-
-				SelectedWallet = newSelectedWallet;
-				Services.UiConfig.LastSelectedWallet = newSelectedWallet.WalletName;
-			});
-
 		Observable
 			.FromEventPattern<WalletState>(Services.WalletManager, nameof(WalletManager.WalletStateChanged))
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -127,8 +110,6 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	public ObservableCollection<WalletViewModelBase> Wallets => _wallets;
 
-	public WalletViewModelBase? SelectedWallet { get; private set; }
-
 	public WalletViewModel GetWalletViewModel(Wallet wallet)
 	{
 		if (TryGetWalletViewModel(wallet, out var walletViewModel) && walletViewModel is WalletViewModel result)
@@ -168,7 +149,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 		var walletViewModelItem = OpenWallet(closedWalletViewModel.Wallet);
 
-		if (SelectedWallet == closedWalletViewModel && walletViewModelItem.OpenCommand.CanExecute(default))
+		if (closedWalletViewModel.IsSelected && walletViewModelItem.OpenCommand.CanExecute(default))
 		{
 			walletViewModelItem.OpenCommand.Execute(default);
 		}

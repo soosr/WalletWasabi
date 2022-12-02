@@ -4,7 +4,8 @@ using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using WalletWasabi.Fluent.ViewModels;
+using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.Behaviors;
@@ -92,7 +93,7 @@ public class ShowWalletCoinsOnKeyCombinationBehavior : DisposingBehavior<Control
 	{
 		wallet = null;
 
-		if (UiServices.WalletManager.SelectedWallet is WalletViewModel { IsLoggedIn: true, IsActive: true } walletViewModel &&
+		if (NavigationManager.Get<NavBarViewModel>()?.SelectedItem is WalletViewModel { IsLoggedIn: true, IsActive: true } walletViewModel &&
 		    walletViewModel.WalletCoinsCommand.CanExecute(default))
 		{
 			wallet = walletViewModel;
