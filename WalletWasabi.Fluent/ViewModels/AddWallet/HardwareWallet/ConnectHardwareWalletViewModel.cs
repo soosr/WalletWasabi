@@ -79,9 +79,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	private void OnNavigateToExistingWalletLogin()
 	{
-		var navBar = NavigationManager.Get<NavBarViewModel>();
-
-		if (ExistingWallet is { } && navBar is { })
+		if (ExistingWallet is { } && ExistingWallet.OpenCommand.CanExecute(default))
 		{
 			Navigate().Clear();
 			ExistingWallet.OpenCommand.Execute(default);
