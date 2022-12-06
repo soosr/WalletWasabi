@@ -1,4 +1,8 @@
 using System.Linq;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using DynamicData;
+using ReactiveUI;
 using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
@@ -18,5 +22,30 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase
 		Labels = pocket.Labels;
 		Children = pocket.Coins.OrderByDescending(x => x.Amount).Select(coin => new CoinCoinControlItemViewModel(coin)).ToList();
 		CanBeSelected = true;
+
+		Children
+			.AsObservableChangeSet()
+			.WhenPropertyChanged(x => x.IsSelected)
+			.Select(_ =>
+			{
+				var totalCount = Children.Count;
+				var selectedCount = Children.Count(x => x.IsSelected == true);
+				return (totalCount, selectedCount);
+			})
+			.Subscribe(x => IsSelected = x.selectedCount == x.totalCount ? true : x.selectedCount == 0 ? false : null);
+
+		this.WhenAnyValue(x => x.IsSelected)
+			.Subscribe(isSelected =>
+			{
+				if (isSelected is null)
+				{
+					return;
+				}
+
+				foreach (var item in Children)
+				{
+					item.IsSelected = isSelected.Value;
+				}
+			});
 	}
 }
