@@ -17,5 +17,6 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase
 		AnonymityScore = (int) pocket.Coins.Max(x => x.HdPubKey.AnonymitySet);
 		Labels = pocket.Labels;
 		Children = pocket.Coins.OrderByDescending(x => x.Amount).Select(coin => new CoinCoinControlItemViewModel(coin)).ToList();
+		CanBeSelected = true;
 	}
 }
