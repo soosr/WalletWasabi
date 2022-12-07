@@ -19,9 +19,10 @@ public class NavBarViewModel : ViewModelBase
 		TopItems = new ObservableCollection<NavBarItemViewModel>();
 		BottomItems = new ObservableCollection<NavBarItemViewModel>();
 
-		Wallets.ToObservableChangeSet().Transform(x => x as NavBarItemViewModel)
-			.Merge(TopItems.ToObservableChangeSet())
-			.Merge(BottomItems.ToObservableChangeSet())
+		Observable.Amb(
+				Wallets.ToObservableChangeSet().Transform(x => x as NavBarItemViewModel),
+				TopItems.ToObservableChangeSet(),
+				BottomItems.ToObservableChangeSet())
 			.WhenPropertyChanged(x => x.IsSelected)
 			.Where(x => x.Value)
 			.Select(x => x.Sender)
