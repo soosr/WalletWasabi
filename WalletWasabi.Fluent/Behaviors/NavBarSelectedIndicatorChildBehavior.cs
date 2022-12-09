@@ -1,29 +1,29 @@
-using System.Collections.Specialized;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using ReactiveUI;
+using WalletWasabi.Fluent.Controls;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
 public class NavBarSelectedIndicatorChildBehavior : AttachedToVisualTreeBehavior<Control>
 {
-	public static readonly AttachedProperty<Control> NavBarItemParentProperty =
-		AvaloniaProperty.RegisterAttached<NavBarSelectedIndicatorChildBehavior, Control, Control>(
-			"NavBarItemParent");
+	public static readonly AttachedProperty<NavBarItem> NavBarItemParentProperty =
+		AvaloniaProperty.RegisterAttached<NavBarSelectedIndicatorChildBehavior, Control, NavBarItem>("NavBarItemParent");
 
-	public static Control GetNavBarItemParent(Control element)
+	public static NavBarItem GetNavBarItemParent(Control element)
 	{
 		return element.GetValue(NavBarItemParentProperty);
 	}
 
-	public static void SetNavBarItemParent(Control element, Control value)
+	public static void SetNavBarItemParent(Control element, NavBarItem value)
 	{
 		element.SetValue(NavBarItemParentProperty, value);
 	}
 
-	private void OnLoaded(CompositeDisposable disposable)
+	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
 		if (AssociatedObject is null)
 		{
@@ -37,30 +37,20 @@ public class NavBarSelectedIndicatorChildBehavior : AttachedToVisualTreeBehavior
 			return;
 		}
 
-		var parent = GetNavBarItemParent(AssociatedObject);
+		var navBarItem = GetNavBarItemParent(AssociatedObject);
 
-		Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(parent.Classes, "CollectionChanged")
-			.Select(_ => parent.Classes)
-			.Select(x => x.Contains(":selected")
-						 && !x.Contains(":pressed")
-						 && !x.Contains(":dragging")
-						 && x.Contains(":selectable"))
+		navBarItem
+			.WhenAnyValue(x => x.IsSelected)
+			.Skip(1)
 			.DistinctUntilChanged()
 			.Where(x => x)
 			.ObserveOn(AvaloniaScheduler.Instance)
 			.Subscribe(_ => sharedState.AnimateIndicatorAsync(AssociatedObject))
 			.DisposeWith(disposable);
 
-		AssociatedObject.Opacity = 0;
-
-		if (parent.Classes.Contains(":selected"))
+		if (navBarItem.IsSelected)
 		{
 			sharedState.SetActive(AssociatedObject);
 		}
-	}
-
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
-	{
-		Dispatcher.UIThread.Post(() => OnLoaded(disposable), DispatcherPriority.Loaded);
 	}
 }
