@@ -19,7 +19,12 @@
         <TextBlock Text="{Binding ShowButtonText}" />
       </StackPanel>
     </c:ContentArea.CancelContent>
-    <StackPanel Spacing="10" Margin="0 0 20 0">
+    <StackPanel Name="Container" Spacing="10" Margin="0 0 20 0">
+      <StackPanel.Styles>
+        <Style Selector="c|PreviewItem">
+          <Setter Property="SeparatorDistance" Value="{Binding #Container.Spacing}"/>
+        </Style>
+      </StackPanel.Styles>
 
       <c:PreviewItem Icon="{StaticResource private_key_regular}"
                      Label="Extended Master Private Key"
@@ -28,7 +33,6 @@
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}">
         <TextBlock Classes="monoSpaced" Text="{Binding ExtendedMasterPrivateKey}" />
       </c:PreviewItem>
-      <Separator IsVisible="{Binding !!ExtendedMasterPrivateKey}" />
 
       <c:PreviewItem Icon="{StaticResource private_key_regular}"
                      Label="Extended Master zprv"
@@ -37,7 +41,6 @@
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}">
         <TextBlock Classes="monoSpaced" Text="{Binding ExtendedMasterZprv}" />
       </c:PreviewItem>
-      <Separator IsVisible="{Binding !!ExtendedMasterZprv}" />
 
       <c:PreviewItem Icon="{StaticResource fingerprint_regular}"
                      Label="Extended Master Fingerprint"
@@ -45,21 +48,18 @@
                      IsVisible="{Binding MasterKeyFingerprint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
         <TextBlock Classes="monoSpaced" Text="{Binding MasterKeyFingerprint}" />
       </c:PreviewItem>
-      <Separator IsVisible="{Binding MasterKeyFingerprint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
       <c:PreviewItem Icon="{StaticResource organization_regular}"
                      Label="Account Key Path (SegWit)"
                      TextValue="{Binding SegWitAccountKeyPath}">
         <TextBlock Classes="monoSpaced" Text="{Binding SegWitAccountKeyPath}" />
       </c:PreviewItem>
-      <Separator />
 
       <c:PreviewItem Icon="{StaticResource organization_regular}"
                            Label="Account Key Path (Taproot)"
                            TextValue="{Binding TaprootAccountKeyPath}">
         <TextBlock Classes="monoSpaced" Text="{Binding TaprootAccountKeyPath}" />
       </c:PreviewItem>
-      <Separator />
 
       <c:PreviewItem Icon="{StaticResource private_key_regular}"
                      Label="Extended Account Private Key xpriv"
@@ -68,9 +68,13 @@
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}">
         <TextBlock Classes="monoSpaced" Text="{Binding ExtendedAccountPrivateKey}" />
       </c:PreviewItem>
-      <Separator IsVisible="{Binding !!ExtendedAccountPrivateKey}" />
 
       <StackPanel Spacing="10" IsVisible="{Binding WpkhOutputDescriptors, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <StackPanel.Styles>
+          <Style Selector="c|PreviewItem">
+            <Setter Property="ShowSeparator" Value="False" />
+          </Style>
+        </StackPanel.Styles>
         <c:PreviewItem Icon="{StaticResource key_regular}"
                        Label="Public External Output descriptor"
                        TextValue="{Binding WpkhOutputDescriptors.PublicExternal}">
@@ -104,12 +108,12 @@
                      TextValue="{Binding SegWitExtendedAccountPublicKey}">
         <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding SegWitExtendedAccountPublicKey}" ForceShow="{Binding ShowSensitiveData}" />
       </c:PreviewItem>
-      <Separator />
 
       <c:PreviewItem Icon="{StaticResource key_regular}"
                      Label="Extended Account Public Key (Taproot)"
                      TextValue="{Binding TaprootExtendedAccountPublicKey}"
-                     IsVisible="{Binding !!TaprootExtendedAccountPublicKey}">
+                     IsVisible="{Binding !!TaprootExtendedAccountPublicKey}"
+                     ShowSeparator="False">
         <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding TaprootExtendedAccountPublicKey}" ForceShow="{Binding ShowSensitiveData}" />
       </c:PreviewItem>
     </StackPanel>
