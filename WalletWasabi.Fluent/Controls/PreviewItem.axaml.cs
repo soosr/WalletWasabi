@@ -34,6 +34,12 @@ public class PreviewItem : ContentControl
 	public static readonly StyledProperty<bool> PrivacyModeEnabledProperty =
 		AvaloniaProperty.Register<PreviewItem, bool>(nameof(PrivacyModeEnabled));
 
+	public static readonly StyledProperty<double> SeparatorDistanceProperty =
+		AvaloniaProperty.Register<PreviewItem, double>(nameof(SeparatorDistance));
+
+	public static readonly StyledProperty<bool> ShowSeparatorProperty =
+		AvaloniaProperty.Register<PreviewItem, bool>(nameof(ShowSeparator), defaultValue: true);
+
 	public string Label
 	{
 		get => GetValue(LabelProperty);
@@ -80,6 +86,18 @@ public class PreviewItem : ContentControl
 	{
 		get => GetValue(PrivacyModeEnabledProperty);
 		set => SetValue(PrivacyModeEnabledProperty, value);
+	}
+
+	public double SeparatorDistance
+	{
+		get => GetValue(SeparatorDistanceProperty);
+		set => SetValue(SeparatorDistanceProperty, value);
+	}
+
+	public bool ShowSeparator
+	{
+		get => GetValue(ShowSeparatorProperty);
+		set => SetValue(ShowSeparatorProperty, value);
 	}
 
 	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)

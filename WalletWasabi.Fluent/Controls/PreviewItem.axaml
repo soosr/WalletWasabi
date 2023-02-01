@@ -12,33 +12,36 @@
   <Style Selector="c|PreviewItem">
     <Setter Property="Template">
       <ControlTemplate>
-        <DockPanel Background="Transparent">
-          <PathIcon Width="{TemplateBinding IconSize}" Height="{TemplateBinding IconSize}"
-                    Data="{TemplateBinding Icon}"
-                    Opacity="0.5"
-                    Margin="0 0 20 0"
-                    Foreground="{StaticResource SystemAccentColor}"
-                    DockPanel.Dock="Left" IsVisible="{TemplateBinding Icon, Converter={x:Static ObjectConverters.IsNotNull}}" />
-          <DockPanel>
-            <TextBlock Name="PART_Text" Text="{TemplateBinding Label}" DockPanel.Dock="Top" Margin="0 0 0 5"
-                       Opacity="0.6" />
-            <DockPanel HorizontalAlignment="Left" DockPanel.Dock="Bottom">
-              <c:ClipboardCopyButton x:Name="PART_ClipboardCopyButton"
-                                     ToolTip.Tip="Copy"
-                                     DockPanel.Dock="Right" Width="30"
-                                     Text="{TemplateBinding TextValue}"
-                                     IsVisible="{TemplateBinding IsCopyButtonVisible}" />
-              <Panel>
-                <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
-                                  ContentTemplate="{TemplateBinding ContentTemplate}"
-                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                  IsVisible="{Binding !#PART_ContentReplacementTextBlock.IsVisible}" />
-                <TextBlock Name="PART_ContentReplacementTextBlock" IsVisible="{TemplateBinding PrivacyModeEnabled}" />
-              </Panel>
+        <StackPanel Spacing="{TemplateBinding SeparatorDistance}">
+          <DockPanel Background="Transparent">
+            <PathIcon Width="{TemplateBinding IconSize}" Height="{TemplateBinding IconSize}"
+                      Data="{TemplateBinding Icon}"
+                      Opacity="0.5"
+                      Margin="0 0 20 0"
+                      Foreground="{StaticResource SystemAccentColor}"
+                      DockPanel.Dock="Left" IsVisible="{TemplateBinding Icon, Converter={x:Static ObjectConverters.IsNotNull}}" />
+            <DockPanel>
+              <TextBlock Name="PART_Text" Text="{TemplateBinding Label}" DockPanel.Dock="Top" Margin="0 0 0 5"
+                         Opacity="0.6" />
+              <DockPanel HorizontalAlignment="Left" DockPanel.Dock="Bottom">
+                <c:ClipboardCopyButton x:Name="PART_ClipboardCopyButton"
+                                       ToolTip.Tip="Copy"
+                                       DockPanel.Dock="Right" Width="30"
+                                       Text="{TemplateBinding TextValue}"
+                                       IsVisible="{TemplateBinding IsCopyButtonVisible}" />
+                <Panel>
+                  <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                                    HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    IsVisible="{Binding !#PART_ContentReplacementTextBlock.IsVisible}" />
+                  <TextBlock Name="PART_ContentReplacementTextBlock" IsVisible="{TemplateBinding PrivacyModeEnabled}" />
+                </Panel>
+              </DockPanel>
             </DockPanel>
           </DockPanel>
-        </DockPanel>
+          <Separator IsVisible="{TemplateBinding ShowSeparator}"/>
+        </StackPanel>
       </ControlTemplate>
     </Setter>
   </Style>
