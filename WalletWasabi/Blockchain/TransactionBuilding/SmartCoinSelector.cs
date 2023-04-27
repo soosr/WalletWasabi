@@ -11,12 +11,14 @@ namespace WalletWasabi.Blockchain.TransactionBuilding;
 
 public class SmartCoinSelector : ICoinSelector
 {
-	public SmartCoinSelector(List<SmartCoin> unspentCoins)
+	public SmartCoinSelector(List<SmartCoin> unspentCoins, int anonScoreTarget)
 	{
 		UnspentCoins = unspentCoins.Distinct().ToList();
+		AnonScoreTarget = anonScoreTarget;
 	}
 
 	private List<SmartCoin> UnspentCoins { get; }
+	public int AnonScoreTarget { get; }
 	private int IterationCount { get; set; }
 	private Exception? LastTransactionSizeException { get; set; }
 
