@@ -6,6 +6,8 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using System.Collections.Immutable;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
 
@@ -57,53 +59,21 @@ public class SmartCoinSelector : ICoinSelector
 			}
 		}
 
-		// Get unique clusters.
-		IEnumerable<Cluster> uniqueClusters = UnspentCoins
-			.Select(coin => coin.HdPubKey.Cluster)
-			.Distinct();
+		var pockets = UnspentCoins.ToPockets(AnonScoreTarget);
+		var privacyOrderedPockets = pockets.OrderBy(GetPrivacyScore).ThenBy(x => x.Amount);
+		var filteredPrivacyOrderedPockets = RemoveUnnecessaryUnconfirmedCoins(privacyOrderedPockets, targetMoney);
+		var bestPockets = RemoveUnnecessaryPockets(filteredPrivacyOrderedPockets, targetMoney);
+		var bestPocketsCoins = Pocket.Merge(bestPockets.ToArray()).Coins;
 
-		// Build all the possible coin clusters, except when it's computationally too expensive.
-		List<List<SmartCoin>> coinClusters = uniqueClusters.Count() < 10
-			? uniqueClusters
-				.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
-				.Select(clusterCombination => UnspentCoins
-					.Where(coin => clusterCombination.Contains(coin.HdPubKey.Cluster))
-					.ToList())
-				.ToList()
-			: new List<List<SmartCoin>>();
-
-		coinClusters.Add(UnspentCoins);
-
-		// This operation is doing super advanced grouping on the coin clusters and adding properties to each of them.
-		var sayajinCoinClusters = coinClusters
-			.Select(coins => (Coins: coins, Privacy: 1.0m / (1 + coins.Sum(x => x.HdPubKey.Cluster.Labels.Count))))
-			.Select(group => (
-				Coins: group.Coins,
-				Unconfirmed: group.Coins.Any(x => !x.Confirmed),    // If group has an unconfirmed, then the whole group is unconfirmed.
-				AnonymitySet: group.Coins.Min(x => x.HdPubKey.AnonymitySet), // The group is as anonymous as its weakest member.
-				ClusterPrivacy: group.Privacy, // The number people/entities that know the cluster.
-				Amount: group.Coins.Sum(x => x.Amount)
-			));
-
-		// Find the best coin cluster that we are going to use.
-		IEnumerable<SmartCoin> bestCoinCluster = sayajinCoinClusters
-			.Where(group => group.Amount >= targetMoney)
-			.OrderBy(group => group.Unconfirmed)
-			.ThenByDescending(group => group.AnonymitySet)     // Always try to spend/merge the largest anonset coins first.
-			.ThenByDescending(group => group.ClusterPrivacy)   // Select lesser-known coins.
-			.ThenBy(group => group.Amount)           // Once we order them by cluster-privacy, we want to be as close to the target as we can.
-			.First()
-			.Coins;
-
-		var coinsInBestClusterByScript = bestCoinCluster
+		var coinsInBestPocketByScript = bestPocketsCoins
 			.GroupBy(c => c.ScriptPubKey)
 			.Select(group => (ScriptPubKey: group.Key, Coins: group.ToList()))
 			.OrderByDescending(x => x.Coins.Sum(c => c.Amount))
 			.ToImmutableList();
 
 		// {1} {2} ... {n} {1, 2} {1, 2, 3} {1, 2, 3, 4} ... {1, 2, 3, 4, 5 ... n}
-		var coinsGroup = coinsInBestClusterByScript.Select(x => ImmutableList.Create(x))
-				.Concat(coinsInBestClusterByScript.Scan(ImmutableList<(Script ScriptPubKey, List<SmartCoin> Coins)>.Empty, (acc, coinGroup) => acc.Add(coinGroup)));
+		var coinsGroup = coinsInBestPocketByScript.Select(x => ImmutableList.Create(x))
+			.Concat(coinsInBestPocketByScript.Scan(ImmutableList<(Script ScriptPubKey, List<SmartCoin> Coins)>.Empty, (acc, coinGroup) => acc.Add(coinGroup)));
 
 		// Flattens the groups of coins and filters out the ones that are too small.
 		// Finally it sorts the solutions by amount and coins (those with less coins on the top).
@@ -118,5 +88,88 @@ public class SmartCoinSelector : ICoinSelector
 
 		// Select the best solution.
 		return candidates.First().Coins.Select(x => x.Coin);
+	}
+
+	private IEnumerable<Pocket> RemoveUnnecessaryUnconfirmedCoins(IOrderedEnumerable<Pocket> privacyOrderedPockets, Money targetMoney)
+	{
+		var list = new List<Pocket>();
+
+		foreach (var pocket in privacyOrderedPockets.Reverse())
+		{
+			var allOtherPocketAmount = privacyOrderedPockets.Where(x => x != pocket).Sum(x => x.Amount);
+			var pocketConfirmedAmount = pocket.Coins.Confirmed().TotalAmount();
+
+			if (allOtherPocketAmount + pocketConfirmedAmount >= targetMoney)
+			{
+				var confirmedCoins = pocket.Coins.Confirmed();
+				var label = new SmartLabel(confirmedCoins.SelectMany(x => x.HdPubKey.Cluster.Labels));
+				list.Add(new Pocket((label, confirmedCoins)));
+			}
+			else
+			{
+				list.Add(pocket);
+			}
+		}
+
+		list.Reverse();
+
+		return list;
+	}
+
+	private IEnumerable<Pocket> RemoveUnnecessaryPockets(IEnumerable<Pocket> filteredPrivacyOrderedPockets, Money targetMoney)
+	{
+		var pocketCandidates = new List<Pocket>();
+
+		foreach (var pocket in filteredPrivacyOrderedPockets)
+		{
+			pocketCandidates.Add(pocket);
+
+			if (pocketCandidates.Sum(x => x.Amount) >= targetMoney)
+			{
+				break;
+			}
+		}
+
+		foreach (var pocket in pocketCandidates.OrderBy(x => x.Amount).ToImmutableArray())
+		{
+			if (pocketCandidates.Except(new[] { pocket }).Sum(x => x.Amount) >= targetMoney)
+			{
+				pocketCandidates.Remove(pocket);
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		return pocketCandidates;
+	}
+
+	private float GetPrivacyScore(Pocket pocket)
+	{
+		if (Recipient.Equals(pocket.Labels, StringComparer.OrdinalIgnoreCase))
+		{
+			return 1;
+		}
+
+		if (pocket.IsPrivate(AnonScoreTarget))
+		{
+			return 2;
+		}
+
+		if (pocket.IsSemiPrivate(AnonScoreTarget, Constants.SemiPrivateThreshold))
+		{
+			return 3;
+		}
+
+		if (pocket.IsUnknown())
+		{
+			return 7;
+		}
+
+		var containedRecipientLabelsCount = pocket.Labels.Count(label => Recipient.Contains(label, StringComparer.OrdinalIgnoreCase));
+		var index = ((float)containedRecipientLabelsCount / pocket.Labels.Count) + ((float)containedRecipientLabelsCount / Recipient.Count);
+
+		return 4 + (2 - index);
 	}
 }
