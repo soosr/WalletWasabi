@@ -7,8 +7,8 @@ using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
