@@ -63,7 +63,7 @@ public class SmartCoinSelector : ICoinSelector
 		var privacyOrderedPockets = pockets.OrderBy(GetPrivacyScore).ThenBy(x => x.Amount);
 		var filteredPrivacyOrderedPockets = RemoveUnnecessaryUnconfirmedCoins(privacyOrderedPockets, targetMoney);
 		var bestPockets = RemoveUnnecessaryPockets(filteredPrivacyOrderedPockets, targetMoney);
-		var bestPocketsCoins = Pocket.Merge(bestPockets.ToArray()).Coins;
+		var bestPocketsCoins = bestPockets.SelectMany(x => x.Coins);
 
 		var coinsInBestPocketByScript = bestPocketsCoins
 			.GroupBy(c => c.ScriptPubKey)
