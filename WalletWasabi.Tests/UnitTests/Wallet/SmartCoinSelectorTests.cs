@@ -31,7 +31,7 @@ public class SmartCoinSelectorTests
 		decimal target = 0.3m;
 		List<SmartCoin> availableCoins = GenerateSmartCoins(Enumerable.Range(0, 9).Select(i => ("Juan", 0.1m * (i + 1))));
 
-		SmartCoinSelector selector = new(availableCoins);
+		SmartCoinSelector selector = new(availableCoins, anonScoreTarget: 999);
 		IEnumerable<ICoin> coinsToSpend = selector.Select(suggestion: EmptySuggestion, Money.Coins(target));
 
 		Coin theOnlyOne = Assert.Single(coinsToSpend.Cast<Coin>());
@@ -44,7 +44,7 @@ public class SmartCoinSelectorTests
 		Money target = Money.Coins(4m);
 		List<SmartCoin> availableCoins = GenerateSmartCoins(Enumerable.Range(0, 10).Select(i => ("Juan", 0.1m * (i + 1))));
 
-		SmartCoinSelector selector = new(availableCoins);
+		SmartCoinSelector selector = new(availableCoins, anonScoreTarget: 999);
 		List<Coin> coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
 
 		Assert.Equal(5, coinsToSpend.Count);
@@ -57,7 +57,7 @@ public class SmartCoinSelectorTests
 		Money target = Money.Coins(0.3m);
 		List<SmartCoin> availableCoins = GenerateSmartCoins(("Besos", 0.2m), ("Besos", 0.2m), ("Juan", 0.1m), ("Juan", 0.1m));
 
-		SmartCoinSelector selector = new(availableCoins);
+		SmartCoinSelector selector = new(availableCoins, anonScoreTarget: 999);
 		List<Coin> coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
 
 		// We do NOT expect an exact match, because that would mix the clusters.
@@ -70,7 +70,7 @@ public class SmartCoinSelectorTests
 		Money target = Money.Coins(0.3m);
 		List<SmartCoin> availableCoins = GenerateSmartCoins(("Besos", 0.2m), ("Juan", 0.1m), ("Adam", 0.2m), ("Eve", 0.1m));
 
-		SmartCoinSelector selector = new(availableCoins);
+		SmartCoinSelector selector = new(availableCoins, anonScoreTarget: 999);
 		List<Coin> coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
 
 		Assert.Equal(2, coinsToSpend.Count);
@@ -83,7 +83,7 @@ public class SmartCoinSelectorTests
 		Money target = Money.Coins(0.3m);
 		List<SmartCoin> availableCoins = GenerateDuplicateSmartCoins(("Juan", 0.1m), count: 10);
 
-		SmartCoinSelector selector = new(availableCoins);
+		SmartCoinSelector selector = new(availableCoins, anonScoreTarget: 999);
 		List<Coin> coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
 
 		Assert.Equal(3, coinsToSpend.Count);
@@ -97,7 +97,7 @@ public class SmartCoinSelectorTests
 		List<SmartCoin> availableCoins = GenerateDuplicateSmartCoins(("Juan", 0.1m), count: 11);
 		availableCoins.Add(GenerateDuplicateSmartCoins(("Beto", 0.2m), count: 5));
 
-		SmartCoinSelector selector = new(availableCoins);
+		SmartCoinSelector selector = new(availableCoins, anonScoreTarget: 999);
 		List<Coin> coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
 
 		Assert.Equal(5, coinsToSpend.Count);
@@ -112,7 +112,7 @@ public class SmartCoinSelectorTests
 		smartCoins.Add(BitcoinFactory.CreateSmartCoin(smartCoins[0].HdPubKey, 0.11m));
 		var someCoins = smartCoins.Select(x => x.Coin);
 
-		var selector = new SmartCoinSelector(smartCoins);
+		var selector = new SmartCoinSelector(smartCoins, anonScoreTarget: 999);
 		var coinsToSpend = selector.Select(someCoins, target);
 
 		var theOnlyOne = Assert.Single(coinsToSpend.Cast<Coin>());
@@ -126,7 +126,7 @@ public class SmartCoinSelectorTests
 		var smartCoins = GenerateSmartCoins(Enumerable.Repeat(("Juan", 0.2m), 12)).ToList();
 		smartCoins.Add(BitcoinFactory.CreateSmartCoin(smartCoins[0].HdPubKey, 0.11m));
 
-		var selector = new SmartCoinSelector(smartCoins);
+		var selector = new SmartCoinSelector(smartCoins, anonScoreTarget: 999);
 		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
 
 		Assert.Equal(2, coinsToSpend.Count);
@@ -141,7 +141,7 @@ public class SmartCoinSelectorTests
 		var coinsKnownByJuan = GenerateSmartCoins(Enumerable.Repeat(("Juan", 0.2m), 5));
 		var coinsKnownByBeto = GenerateSmartCoins(Enumerable.Repeat(("Beto", 0.2m), 2));
 
-		var selector = new SmartCoinSelector(coinsKnownByJuan.Concat(coinsKnownByBeto).ToList());
+		var selector = new SmartCoinSelector(coinsKnownByJuan.Concat(coinsKnownByBeto).ToList(), anonScoreTarget: 999);
 		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
 
 		Assert.Equal(2, coinsToSpend.Count);
