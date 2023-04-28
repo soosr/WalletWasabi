@@ -60,7 +60,7 @@ public class SmartCoinSelector : ICoinSelector
 		}
 
 		var pockets = UnspentCoins.ToPockets(AnonScoreTarget);
-		var privacyOrderedPockets = pockets.OrderBy(GetPrivacyScore).ThenBy(x => x.Amount);
+		var privacyOrderedPockets = pockets.OrderBy(x => GetPrivacyScore(x, targetMoney)).ThenByDescending(x => x.Amount);
 		var filteredPrivacyOrderedPockets = RemoveUnnecessaryUnconfirmedCoins(privacyOrderedPockets, targetMoney);
 		var bestPockets = RemoveUnnecessaryPockets(filteredPrivacyOrderedPockets, targetMoney);
 		var bestPocketsCoins = bestPockets.SelectMany(x => x.Coins);
@@ -145,7 +145,7 @@ public class SmartCoinSelector : ICoinSelector
 		return pocketCandidates;
 	}
 
-	private float GetPrivacyScore(Pocket pocket)
+	private decimal GetPrivacyScore(Pocket pocket, Money targetMoney)
 	{
 		if (Recipient.Equals(pocket.Labels, StringComparer.OrdinalIgnoreCase))
 		{
@@ -168,8 +168,12 @@ public class SmartCoinSelector : ICoinSelector
 		}
 
 		var containedRecipientLabelsCount = pocket.Labels.Count(label => Recipient.Contains(label, StringComparer.OrdinalIgnoreCase));
-		var index = ((float)containedRecipientLabelsCount / pocket.Labels.Count) + ((float)containedRecipientLabelsCount / Recipient.Count);
+		if (containedRecipientLabelsCount > 0)
+		{
+			var index = ((decimal)containedRecipientLabelsCount / pocket.Labels.Count) + ((decimal)containedRecipientLabelsCount / Recipient.Count);
+			return 4 + (2 - index);
+		}
 
-		return 4 + (2 - index);
+		return 6 + 1 - (Math.Min(pocket.Amount.ToDecimal(MoneyUnit.BTC), targetMoney.ToDecimal(MoneyUnit.BTC)) / pocket.Labels.Count / targetMoney.ToDecimal(MoneyUnit.BTC));
 	}
 }
