@@ -60,10 +60,10 @@ public class SmartCoinSelector : ICoinSelector
 		}
 
 		var pockets = UnspentCoins.ToPockets(AnonScoreTarget);
-		var privacyOrderedPockets = pockets.OrderBy(x => GetPrivacyScore(x, targetMoney)).ThenBy(x => x.Amount);
+		var privacyOrderedPockets = pockets.OrderBy(GetPrivacyScore).ThenBy(x => x.Amount);
 		var filteredPrivacyOrderedPockets = RemoveUnnecessaryUnconfirmedCoins(privacyOrderedPockets, targetMoney);
-		var bestPockets = RemoveUnnecessaryPockets(filteredPrivacyOrderedPockets, targetMoney);
-		var bestPocketsCoins = bestPockets.SelectMany(x => x.Coins);
+		var bestPockets = GetBestCombination(filteredPrivacyOrderedPockets, targetMoney);
+		var bestPocketsCoins = bestPockets.Coins;
 
 		var coinsInBestPocketByScript = bestPocketsCoins
 			.GroupBy(c => c.ScriptPubKey)
@@ -88,6 +88,19 @@ public class SmartCoinSelector : ICoinSelector
 
 		// Select the best solution.
 		return candidates.First().Coins.Select(x => x.Coin);
+	}
+
+	private Pocket GetBestCombination(IEnumerable<Pocket> filteredPrivacyOrderedPockets, Money targetMoney)
+	{
+		var best = filteredPrivacyOrderedPockets
+			.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
+			.Select(pocketCombination => (Score: pocketCombination.Sum(GetPrivacyScore), Pocket: Pocket.Merge(pocketCombination.ToArray())))
+			.Where(x => x.Pocket.Amount >= targetMoney)
+			.OrderBy(x => x.Score)
+			.ThenBy(x => x.Pocket.Amount)
+			.First();
+
+		return best.Pocket;
 	}
 
 	private IEnumerable<Pocket> RemoveUnnecessaryUnconfirmedCoins(IOrderedEnumerable<Pocket> privacyOrderedPockets, Money targetMoney)
@@ -145,7 +158,7 @@ public class SmartCoinSelector : ICoinSelector
 		return pocketCandidates;
 	}
 
-	private decimal GetPrivacyScore(Pocket pocket, Money targetMoney)
+	private decimal GetPrivacyScore(Pocket pocket)
 	{
 		if (Recipient.Equals(pocket.Labels, StringComparer.OrdinalIgnoreCase))
 		{
@@ -174,7 +187,7 @@ public class SmartCoinSelector : ICoinSelector
 			return 4 + (2 - index);
 		}
 
-		var x = 6 + 1 - (Math.Min(pocket.Amount.ToDecimal(MoneyUnit.BTC), targetMoney.ToDecimal(MoneyUnit.BTC)) / pocket.Labels.Count / targetMoney.ToDecimal(MoneyUnit.BTC));
+		var x = 6 + 1 - (1M / pocket.Labels.Count);
 		return x;
 	}
 }
