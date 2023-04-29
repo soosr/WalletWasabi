@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.UnitTests.UserInterfaceTest;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet;
@@ -146,6 +147,255 @@ public class SmartCoinSelectorTests
 
 		Assert.Equal(2, coinsToSpend.Count);
 		Assert.Equal(0.4m, coinsToSpend.Sum(x => x.Amount.ToUnit(MoneyUnit.BTC)));
+	}
+
+	[Fact]
+	public void PreferPrivatePocket()
+	{
+		Money target = Money.Coins(0.3m);
+
+		var coins = new List<SmartCoin>
+		{
+			LabelTestExtensions.CreateCoin(0.4m, "", anonymitySet: 10), // Private pocket
+			LabelTestExtensions.CreateCoin(0.5m, "", anonymitySet: 4), // Semi-private pocket
+			LabelTestExtensions.CreateCoin(0.6m, "Lucas", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.7m, "", anonymitySet: 1), // Unlabelled pocket
+		};
+
+		var selector = new SmartCoinSelector(coins, recipient: "Jose", anonScoreTarget: 5);
+		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
+
+		Assert.Single(coinsToSpend);
+		Assert.Equal(0.4m, coinsToSpend.Sum(x => x.Amount.ToUnit(MoneyUnit.BTC)));
+	}
+
+	[Fact]
+	public void PreferSemiPrivatePocket()
+	{
+		Money target = Money.Coins(0.5m);
+
+		var coins = new List<SmartCoin>
+		{
+			LabelTestExtensions.CreateCoin(0.4m, "", anonymitySet: 10), // Private pocket
+			LabelTestExtensions.CreateCoin(0.5m, "", anonymitySet: 4), // Semi-private pocket
+			LabelTestExtensions.CreateCoin(0.6m, "Lucas", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.7m, "", anonymitySet: 1), // Unlabelled pocket
+		};
+
+		var selector = new SmartCoinSelector(coins, recipient: "Jose", anonScoreTarget: 5);
+		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
+
+		Assert.Single(coinsToSpend);
+		Assert.Equal(0.5m, coinsToSpend.Sum(x => x.Amount.ToUnit(MoneyUnit.BTC)));
+	}
+
+	[Fact]
+	public void PreferPrivateAndSemiPrivatePocket()
+	{
+		Money target = Money.Coins(0.9m);
+
+		var coins = new List<SmartCoin>
+		{
+			LabelTestExtensions.CreateCoin(0.4m, "", anonymitySet: 10), // Private pocket
+			LabelTestExtensions.CreateCoin(0.5m, "", anonymitySet: 4), // Semi-private pocket
+			LabelTestExtensions.CreateCoin(0.6m, "Lucas", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.7m, "", anonymitySet: 1), // Unlabelled pocket
+		};
+
+		var selector = new SmartCoinSelector(coins, recipient: "Jose", anonScoreTarget: 5);
+		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
+
+		Assert.Equal(2, coinsToSpend.Count);
+		Assert.Equal(0.9m, coinsToSpend.Sum(x => x.Amount.ToUnit(MoneyUnit.BTC)));
+	}
+
+	[Fact]
+	public void AvoidUnlabelledPocket()
+	{
+		Money target = Money.Coins(0.7m);
+
+		var coins = new List<SmartCoin>
+		{
+			LabelTestExtensions.CreateCoin(0.2m, "", anonymitySet: 10), // Private pocket
+			LabelTestExtensions.CreateCoin(0.2m, "", anonymitySet: 4), // Semi-private pocket
+			LabelTestExtensions.CreateCoin(0.3m, "Lucas", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.7m, "", anonymitySet: 1), // Unlabelled pocket
+		};
+
+		var selector = new SmartCoinSelector(coins, recipient: "Jose", anonScoreTarget: 5);
+		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
+
+		Assert.Equal(3, coinsToSpend.Count);
+		Assert.Equal(0.7m, coinsToSpend.Sum(x => x.Amount.ToUnit(MoneyUnit.BTC)));
+	}
+
+	[Fact]
+	public void PreferPocketKnownByRecipient()
+	{
+		Money target = Money.Coins(0.7m);
+
+		var knownByJoseCoin = LabelTestExtensions.CreateCoin(0.3m, "Jose", anonymitySet: 1);
+		var coins = new List<SmartCoin>
+		{
+			LabelTestExtensions.CreateCoin(0.2m, "", anonymitySet: 10), // Private pocket
+			LabelTestExtensions.CreateCoin(0.2m, "", anonymitySet: 4), // Semi-private pocket
+			LabelTestExtensions.CreateCoin(0.3m, "Lucas", anonymitySet: 1),
+			knownByJoseCoin,
+			LabelTestExtensions.CreateCoin(0.7m, "", anonymitySet: 1), // Unlabelled pocket
+		};
+
+		var selector = new SmartCoinSelector(coins, recipient: "Jose", anonScoreTarget: 5);
+		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
+
+		Assert.Equal(3, coinsToSpend.Count);
+		Assert.Equal(0.7m, coinsToSpend.Sum(x => x.Amount.ToUnit(MoneyUnit.BTC)));
+		Assert.Contains(knownByJoseCoin.Coin, coinsToSpend);
+	}
+
+	[Fact]
+	public void PreferUnlabelledPocketWhenKnownIsUnnecessary()
+	{
+		Money target = Money.Coins(0.7m);
+
+		var coins = new List<SmartCoin>
+		{
+			LabelTestExtensions.CreateCoin(0.2m, "", anonymitySet: 10), // Private pocket
+			LabelTestExtensions.CreateCoin(0.2m, "", anonymitySet: 4), // Semi-private pocket
+			LabelTestExtensions.CreateCoin(0.2m, "Lucas", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.3m, "", anonymitySet: 1), // Unlabelled pocket
+		};
+
+		var selector = new SmartCoinSelector(coins, recipient: "Jose", anonScoreTarget: 5);
+		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
+
+		Assert.Equal(3, coinsToSpend.Count);
+		Assert.Equal(0.7m, coinsToSpend.Sum(x => x.Amount.ToUnit(MoneyUnit.BTC)));
+	}
+
+	[Fact]
+	public void UseAllPockets()
+	{
+		Money target = Money.Coins(0.7m);
+
+		var coins = new List<SmartCoin>
+		{
+			LabelTestExtensions.CreateCoin(0.2m, "", anonymitySet: 10), // Private pocket
+			LabelTestExtensions.CreateCoin(0.2m, "", anonymitySet: 4), // Semi-private pocket
+			LabelTestExtensions.CreateCoin(0.2m, "Lucas", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.1m, "", anonymitySet: 1), // Unlabelled pocket
+		};
+
+		var selector = new SmartCoinSelector(coins, recipient: "Jose", anonScoreTarget: 5);
+		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
+
+		Assert.Equal(4, coinsToSpend.Count);
+		Assert.Equal(0.7m, coinsToSpend.Sum(x => x.Amount.ToUnit(MoneyUnit.BTC)));
+	}
+
+	[Theory]
+	[InlineData("Jose, Lucas", "Jose, Lucas")]
+	[InlineData("jOSE, lUCAS", "Jose, Lucas")]
+	[InlineData("Jose, Lucas", "jOSE, lUCAS")]
+	public void SelectOnlyKnownByRecipientPocketTests(string label, string recipient)
+	{
+		Money target = Money.Coins(0.1m);
+
+		var knownByJoseLucasCoin = LabelTestExtensions.CreateCoin(0.5m, label, anonymitySet: 1);
+		var coins = new List<SmartCoin>
+		{
+			LabelTestExtensions.CreateCoin(0.2m, "", anonymitySet: 10), // Private pocket
+			LabelTestExtensions.CreateCoin(0.2m, "", anonymitySet: 4), // Semi-private pocket
+			LabelTestExtensions.CreateCoin(0.3m, "Lucas", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.3m, "Jose", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.3m, "Jose, Lucas, Federico", anonymitySet: 1),
+			knownByJoseLucasCoin,
+			LabelTestExtensions.CreateCoin(0.7m, "", anonymitySet: 1), // Unlabelled pocket
+		};
+
+		var selector = new SmartCoinSelector(coins, recipient: recipient, anonScoreTarget: 5);
+		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
+
+		Assert.Single(coinsToSpend);
+		Assert.Contains(knownByJoseLucasCoin.Coin, coinsToSpend);
+	}
+
+	[Theory]
+	[InlineData("David, Lucas", "David")]
+	[InlineData("David, Lucas, Jose", "David, Lucas")]
+	public void SelectKnownByRecipientPocketTests(string label, string recipient)
+	{
+		Money target = Money.Coins(0.41m);
+
+		var coins = new List<SmartCoin>
+		{
+			LabelTestExtensions.CreateCoin(0.2m, "", anonymitySet: 10), // Private pocket
+			LabelTestExtensions.CreateCoin(0.2m, "", anonymitySet: 4), // Semi-private pocket
+			LabelTestExtensions.CreateCoin(0.1m, label, anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.3m, "Lucas", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.3m, "Jose", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.3m, "Jose, Lucas, Federico", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.7m, "", anonymitySet: 1), // Unlabelled pocket
+		};
+
+		var selector = new SmartCoinSelector(coins, recipient: recipient, anonScoreTarget: 5);
+		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
+
+		Assert.Equal(3, coinsToSpend.Count);
+		Assert.Contains(coins[0].Coin, coinsToSpend);
+		Assert.Contains(coins[1].Coin, coinsToSpend);
+		Assert.Contains(coins[2].Coin, coinsToSpend);
+	}
+
+	[Fact]
+	public void PreferKnownByRecipientPocket()
+	{
+		Money target = Money.Coins(0.71m);
+
+		var coins = new List<SmartCoin>
+		{
+			LabelTestExtensions.CreateCoin(0.2m, "", anonymitySet: 10), // Private pocket
+			LabelTestExtensions.CreateCoin(0.2m, "", anonymitySet: 4), // Semi-private pocket
+			LabelTestExtensions.CreateCoin(0.1m, "David, Lucas", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.3m, "Lucas", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.3m, "Jose", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.3m, "Jose, Lucas, Federico", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.7m, "", anonymitySet: 1), // Unlabelled pocket
+		};
+
+		var selector = new SmartCoinSelector(coins, recipient: "Lucas", anonScoreTarget: 5);
+		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
+
+		Assert.Equal(4, coinsToSpend.Count);
+		Assert.Contains(coins[0].Coin, coinsToSpend);
+		Assert.Contains(coins[1].Coin, coinsToSpend);
+		Assert.Contains(coins[2].Coin, coinsToSpend);
+		Assert.Contains(coins[3].Coin, coinsToSpend);
+	}
+
+	[Fact]
+	public void OnlySelectNecessaryKnownByRecipientPocket()
+	{
+		Money target = Money.Coins(1m);
+
+		var coins = new List<SmartCoin>
+		{
+			LabelTestExtensions.CreateCoin(0.2m, "", anonymitySet: 10), // Private pocket
+			LabelTestExtensions.CreateCoin(0.2m, "", anonymitySet: 4), // Semi-private pocket
+			LabelTestExtensions.CreateCoin(0.3m, "Lucas", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.1m, "Lucas, David", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.3m, "Lucas, David, Jose", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.3m, "Jose, Lucas, Federico", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(0.7m, "", anonymitySet: 1), // Unlabelled pocket
+		};
+
+		var selector = new SmartCoinSelector(coins, recipient: "Lucas", anonScoreTarget: 5);
+		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
+
+		Assert.Equal(4, coinsToSpend.Count);
+		Assert.Contains(coins[0].Coin, coinsToSpend);
+		Assert.Contains(coins[1].Coin, coinsToSpend);
+		Assert.Contains(coins[2].Coin, coinsToSpend);
+		Assert.Contains(coins[4].Coin, coinsToSpend);
 	}
 
 	private List<SmartCoin> GenerateDuplicateSmartCoins((string Cluster, decimal amount) coin, int count)

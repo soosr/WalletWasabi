@@ -94,13 +94,21 @@ public class SmartCoinSelector : ICoinSelector
 	{
 		var best = filteredPrivacyOrderedPockets
 			.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
-			.Select(pocketCombination => (Score: pocketCombination.Sum(GetPrivacyScore), Pocket: Pocket.Merge(pocketCombination.ToArray())))
-			.Where(x => x.Pocket.Amount >= targetMoney)
-			.OrderBy(x => x.Score)
-			.ThenBy(x => x.Pocket.Amount)
-			.First();
+			.Select(pocketCombination => (Score: pocketCombination.Max(GetPrivacyScore), Pocket: Pocket.Merge(pocketCombination.ToArray())))
+			.Where(x => x.Pocket.Amount >= targetMoney);
 
-		return best.Pocket;
+		var x = best.OrderBy(x => x.Score).ThenByDescending(x =>
+		{
+			var valami = x.Pocket.Coins.Sum(x => x.HdPubKey.AnonymitySet) / x.Pocket.Coins.Count();
+
+			return valami;
+		});
+
+		var y = x.ThenBy(x => x.Pocket.Amount);
+
+		var z = y.First();
+
+		return z.Pocket;
 	}
 
 	private IEnumerable<Pocket> RemoveUnnecessaryUnconfirmedCoins(IOrderedEnumerable<Pocket> privacyOrderedPockets, Money targetMoney)
