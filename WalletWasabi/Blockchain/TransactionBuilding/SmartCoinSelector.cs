@@ -13,16 +13,18 @@ namespace WalletWasabi.Blockchain.TransactionBuilding;
 
 public class SmartCoinSelector : ICoinSelector
 {
-	public SmartCoinSelector(List<SmartCoin> unspentCoins, SmartLabel recipient, int anonScoreTarget)
+	public SmartCoinSelector(List<SmartCoin> unspentCoins, SmartLabel recipient, int privateThreshold, int semiPrivateThreshold)
 	{
 		UnspentCoins = unspentCoins.Distinct().ToList();
 		Recipient = recipient;
-		AnonScoreTarget = anonScoreTarget;
+		PrivateThreshold = privateThreshold;
+		SemiPrivateThreshold = semiPrivateThreshold;
 	}
 
 	private List<SmartCoin> UnspentCoins { get; }
 	public SmartLabel Recipient { get; }
-	public int AnonScoreTarget { get; }
+	public int PrivateThreshold { get; }
+	public int SemiPrivateThreshold { get; }
 	private int IterationCount { get; set; }
 	private Exception? LastTransactionSizeException { get; set; }
 
@@ -59,7 +61,7 @@ public class SmartCoinSelector : ICoinSelector
 			}
 		}
 
-		var pockets = UnspentCoins.ToPockets(AnonScoreTarget);
+		var pockets = UnspentCoins.ToPockets(PrivateThreshold);
 		var privacyOrderedPockets = pockets.OrderBy(GetPrivacyScore).ThenBy(x => x.Amount);
 		var filteredPrivacyOrderedPockets = RemoveUnnecessaryUnconfirmedCoins(privacyOrderedPockets, targetMoney);
 		var bestPockets = GetBestCombination(filteredPrivacyOrderedPockets, targetMoney);
@@ -173,17 +175,17 @@ public class SmartCoinSelector : ICoinSelector
 			return 1;
 		}
 
-		if (pocket.IsPrivate(AnonScoreTarget))
+		if (pocket.IsPrivate(PrivateThreshold))
 		{
 			return 2;
 		}
 
-		if (pocket.IsSemiPrivate(AnonScoreTarget, Constants.SemiPrivateThreshold))
+		if (pocket.IsSemiPrivate(PrivateThreshold, SemiPrivateThreshold))
 		{
 			return 3;
 		}
 
-		if (pocket.IsUnknown())
+		if (pocket.IsUnknown(SemiPrivateThreshold))
 		{
 			return 7;
 		}

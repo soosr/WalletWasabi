@@ -32,12 +32,13 @@ public class Pocket
 		return Coins.All(x => x.IsSemiPrivate(privateThreshold, semiPrivateThreshold));
 	}
 
-	public bool IsUnknown()
+	public bool IsUnknown(int semiPrivateThreshold)
 	{
 		var allLabel = Coins.SelectMany(x => x.HdPubKey.Cluster.Labels);
+		var isAllCoinNonPrivate = Coins.All(x => x.HdPubKey.AnonymitySet < semiPrivateThreshold);
 		var mergedLabels = new SmartLabel(allLabel);
 
-		return mergedLabels.IsEmpty;
+		return mergedLabels.IsEmpty && isAllCoinNonPrivate;
 	}
 
 	public static Pocket Merge(params Pocket[] pockets)
