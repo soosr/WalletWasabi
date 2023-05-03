@@ -41,6 +41,11 @@ public class Pocket
 		return mergedLabels.IsEmpty && isAllCoinNonPrivate;
 	}
 
+	public bool IsUnconfirmed()
+	{
+		return Coins.Any(x => !x.Confirmed);
+	}
+
 	public static Pocket Merge(params Pocket[] pockets)
 	{
 		var mergedLabels = SmartLabel.Merge(pockets.Select(p => p.Labels));

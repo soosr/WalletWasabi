@@ -61,13 +61,12 @@ public class SmartCoinSelector : ICoinSelector
 			}
 		}
 
-		var pockets = UnspentCoins.ToPockets(PrivateThreshold);
-		var privacyOrderedPockets = pockets.OrderBy(GetPrivacyScore).ThenBy(x => x.Amount);
-		var filteredPrivacyOrderedPockets = RemoveUnnecessaryUnconfirmedCoins(privacyOrderedPockets, targetMoney);
-		var bestPockets = GetBestCombination(filteredPrivacyOrderedPockets, targetMoney);
-		var bestPocketsCoins = bestPockets.Coins;
+		var coins = FilterUnnecessaryPrivateAndSemiPrivateUnconfirmedCoins(UnspentCoins, targetMoney);
+		var pockets = coins.ToPockets(PrivateThreshold).ToArray();
+		var bestPocket = GetBestCombination(pockets, targetMoney);
+		var bestPocketCoins = bestPocket.Coins;
 
-		var coinsInBestPocketByScript = bestPocketsCoins
+		var coinsInBestPocketByScript = bestPocketCoins
 			.GroupBy(c => c.ScriptPubKey)
 			.Select(group => (ScriptPubKey: group.Key, Coins: group.ToList()))
 			.OrderByDescending(x => x.Coins.Sum(c => c.Amount))
@@ -92,80 +91,45 @@ public class SmartCoinSelector : ICoinSelector
 		return candidates.First().Coins.Select(x => x.Coin);
 	}
 
-	private Pocket GetBestCombination(IEnumerable<Pocket> filteredPrivacyOrderedPockets, Money targetMoney)
+	private IEnumerable<SmartCoin> FilterUnnecessaryPrivateAndSemiPrivateUnconfirmedCoins(IEnumerable<SmartCoin> unspentCoins, Money targetAmount)
 	{
-		var best = filteredPrivacyOrderedPockets
+		SmartCoin[] FilterIfUnnecessary(SmartCoin[] allCoins, SmartCoin[] coinsToFilter)
+		{
+			return allCoins.Sum(x => x.Amount) - coinsToFilter.Sum(x => x.Amount) >= targetAmount
+				? allCoins.Except(coinsToFilter).ToArray()
+				: allCoins;
+		}
+
+		var unconfirmedSemiPrivateCoins = UnspentCoins.Where(x => x.IsSemiPrivate(PrivateThreshold, SemiPrivateThreshold) && !x.Confirmed).ToArray();
+		var unconfirmedPrivateCoins = UnspentCoins.Where(x => x.IsPrivate(PrivateThreshold) && !x.Confirmed).ToArray();
+		var coins = unspentCoins.ToArray();
+
+		coins = FilterIfUnnecessary(coins, unconfirmedSemiPrivateCoins);
+		coins = FilterIfUnnecessary(coins, unconfirmedPrivateCoins);
+
+		return coins;
+	}
+
+	private Pocket GetBestCombination(Pocket[] pockets, Money targetMoney)
+	{
+		if (pockets.Length >= 10)
+		{
+			return Pocket.Merge(pockets);
+		}
+
+		return pockets
 			.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
-			.Select(pocketCombination => (Score: pocketCombination.Max(GetPrivacyScore), Pocket: Pocket.Merge(pocketCombination.ToArray())))
-			.Where(x => x.Pocket.Amount >= targetMoney);
-
-		var x = best.OrderBy(x => x.Score).ThenByDescending(x =>
-		{
-			var valami = x.Pocket.Coins.Sum(x => x.HdPubKey.AnonymitySet) / x.Pocket.Coins.Count();
-
-			return valami;
-		});
-
-		var y = x.ThenBy(x => x.Pocket.Amount);
-
-		var z = y.First();
-
-		return z.Pocket;
-	}
-
-	private IEnumerable<Pocket> RemoveUnnecessaryUnconfirmedCoins(IOrderedEnumerable<Pocket> privacyOrderedPockets, Money targetMoney)
-	{
-		var list = new List<Pocket>();
-
-		foreach (var pocket in privacyOrderedPockets.Reverse())
-		{
-			var allOtherPocketAmount = privacyOrderedPockets.Where(x => x != pocket).Sum(x => x.Amount);
-			var pocketConfirmedAmount = pocket.Coins.Confirmed().TotalAmount();
-
-			if (allOtherPocketAmount + pocketConfirmedAmount >= targetMoney)
-			{
-				var confirmedCoins = pocket.Coins.Confirmed();
-				var label = new SmartLabel(confirmedCoins.SelectMany(x => x.HdPubKey.Cluster.Labels));
-				list.Add(new Pocket((label, confirmedCoins)));
-			}
-			else
-			{
-				list.Add(pocket);
-			}
-		}
-
-		list.Reverse();
-
-		return list;
-	}
-
-	private IEnumerable<Pocket> RemoveUnnecessaryPockets(IEnumerable<Pocket> filteredPrivacyOrderedPockets, Money targetMoney)
-	{
-		var pocketCandidates = new List<Pocket>();
-
-		foreach (var pocket in filteredPrivacyOrderedPockets)
-		{
-			pocketCandidates.Add(pocket);
-
-			if (pocketCandidates.Sum(x => x.Amount) >= targetMoney)
-			{
-				break;
-			}
-		}
-
-		foreach (var pocket in pocketCandidates.OrderBy(x => x.Amount).ToImmutableArray())
-		{
-			if (pocketCandidates.Except(new[] { pocket }).Sum(x => x.Amount) >= targetMoney)
-			{
-				pocketCandidates.Remove(pocket);
-			}
-			else
-			{
-				break;
-			}
-		}
-
-		return pocketCandidates;
+			.Select(pocketCombination =>
+				(Score: pocketCombination.Max(GetPrivacyScore),
+					Pocket: Pocket.Merge(pocketCombination.ToArray()),
+					Unconfirmed: pocketCombination.Any(x => x.IsUnconfirmed())))
+			.Where(x => x.Pocket.Amount >= targetMoney)
+			.OrderBy(x => x.Unconfirmed)
+			.ThenBy(x => x.Score)
+			.ThenByDescending(x => x.Pocket.Coins.Sum(x => x.HdPubKey.AnonymitySet) / x.Pocket.Coins.Count())
+			.ThenBy(x => x.Pocket.Amount)
+			.First()
+			.Pocket;
 	}
 
 	private decimal GetPrivacyScore(Pocket pocket)
