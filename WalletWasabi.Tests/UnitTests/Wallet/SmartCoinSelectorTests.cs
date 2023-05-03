@@ -398,6 +398,91 @@ public class SmartCoinSelectorTests
 		Assert.Contains(coins[4].Coin, coinsToSpend);
 	}
 
+	[Fact]
+	public void PreferConfirmedPocket()
+	{
+		Money target = Money.Coins(1m);
+
+		var coins = new List<SmartCoin>
+		{
+			LabelTestExtensions.CreateCoin(1.1m, "Lucas", anonymitySet: 1),
+			LabelTestExtensions.CreateCoin(1m, "Jose", anonymitySet: 1, isConfirmed: false),
+		};
+
+		var selector = new SmartCoinSelector(coins, recipient: "David", privateThreshold: 5, semiPrivateThreshold: 2);
+		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
+
+		Assert.Single(coinsToSpend);
+		Assert.Contains(coins[0].Coin, coinsToSpend);
+	}
+
+	[Fact]
+	public void AvoidUnconfirmedPrivateCoins()
+	{
+		Money target = Money.Coins(1m);
+
+		var coins = new List<SmartCoin>
+		{
+			LabelTestExtensions.CreateCoin(0.5m, anonymitySet: 999),
+			LabelTestExtensions.CreateCoin(0.5m, anonymitySet: 999),
+			LabelTestExtensions.CreateCoin(1m, anonymitySet: 999, isConfirmed: false),
+			LabelTestExtensions.CreateCoin(1m, anonymitySet: 999, isConfirmed: false),
+			LabelTestExtensions.CreateCoin(1m, anonymitySet: 999, isConfirmed: false),
+		};
+
+		var selector = new SmartCoinSelector(coins, recipient: "David", privateThreshold: 5, semiPrivateThreshold: 2);
+		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
+
+		Assert.Equal(2, coinsToSpend.Count);
+		Assert.Contains(coins[0].Coin, coinsToSpend);
+		Assert.Contains(coins[1].Coin, coinsToSpend);
+	}
+
+	[Fact]
+	public void AvoidUnconfirmedSemiPrivateCoins()
+	{
+		Money target = Money.Coins(1m);
+
+		var coins = new List<SmartCoin>
+		{
+			LabelTestExtensions.CreateCoin(0.5m, anonymitySet: 4),
+			LabelTestExtensions.CreateCoin(0.5m, anonymitySet: 4),
+			LabelTestExtensions.CreateCoin(1m, anonymitySet: 4, isConfirmed: false),
+			LabelTestExtensions.CreateCoin(1m, anonymitySet: 4, isConfirmed: false),
+			LabelTestExtensions.CreateCoin(1m, anonymitySet: 4, isConfirmed: false),
+		};
+
+		var selector = new SmartCoinSelector(coins, recipient: "David", privateThreshold: 5, semiPrivateThreshold: 2);
+		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
+
+		Assert.Equal(2, coinsToSpend.Count);
+		Assert.Contains(coins[0].Coin, coinsToSpend);
+		Assert.Contains(coins[1].Coin, coinsToSpend);
+	}
+
+	[Fact]
+	public void IncludeUnconfirmedCoins()
+	{
+		Money target = Money.Coins(1m);
+
+		var coins = new List<SmartCoin>
+		{
+			LabelTestExtensions.CreateCoin(0.25m, anonymitySet: 999, isConfirmed: false),
+			LabelTestExtensions.CreateCoin(0.25m, anonymitySet: 4, isConfirmed: false),
+			LabelTestExtensions.CreateCoin(0.25m, "Lucas", anonymitySet: 1, isConfirmed: false),
+			LabelTestExtensions.CreateCoin(0.25m, "Jose", anonymitySet: 1, isConfirmed: false),
+		};
+
+		var selector = new SmartCoinSelector(coins, recipient: "David", privateThreshold: 5, semiPrivateThreshold: 2);
+		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
+
+		Assert.Equal(4, coinsToSpend.Count);
+		Assert.Contains(coins[0].Coin, coinsToSpend);
+		Assert.Contains(coins[1].Coin, coinsToSpend);
+		Assert.Contains(coins[2].Coin, coinsToSpend);
+		Assert.Contains(coins[3].Coin, coinsToSpend);
+	}
+
 	private List<SmartCoin> GenerateDuplicateSmartCoins((string Cluster, decimal amount) coin, int count)
 		=> GenerateSmartCoins(Enumerable.Range(start: 0, count).Select(x => coin));
 
