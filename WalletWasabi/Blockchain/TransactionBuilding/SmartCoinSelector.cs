@@ -91,6 +91,11 @@ public class SmartCoinSelector : ICoinSelector
 		return candidates.First().Coins.Select(x => x.Coin);
 	}
 
+	/// <summary>
+	/// Removes the unconfirmed Private and Semi-Private coins if they are not required.
+	/// Since those two pockets are a mix of coins from different clusters,
+	/// it is not mandatory to spend them as a whole pocket, so unconfirmed coins can be skipped.
+	/// </summary>
 	private IEnumerable<SmartCoin> FilterUnnecessaryPrivateAndSemiPrivateUnconfirmedCoins(IEnumerable<SmartCoin> unspentCoins, Money targetAmount)
 	{
 		SmartCoin[] FilterIfUnnecessary(SmartCoin[] allCoins, SmartCoin[] coinsToFilter)
@@ -110,6 +115,11 @@ public class SmartCoinSelector : ICoinSelector
 		return coins;
 	}
 
+	/// <summary>
+	/// Calculates the best combination from the gives pocket that can cover the target amount,
+	/// if the calculation is not expensive.
+	/// Otherwise it returns a combination fromm all pockets.
+	/// </summary>
 	private Pocket GetBestCombination(Pocket[] pockets, Money targetMoney)
 	{
 		if (pockets.Length >= 10)
@@ -132,6 +142,9 @@ public class SmartCoinSelector : ICoinSelector
 			.Pocket;
 	}
 
+	/// <summary>
+	/// Scores the given pocket from a privacy acceptance perspective.
+	/// </summary>
 	private decimal GetPrivacyScore(Pocket pocket)
 	{
 		if (Recipient.Equals(pocket.Labels, StringComparer.OrdinalIgnoreCase))
@@ -151,7 +164,7 @@ public class SmartCoinSelector : ICoinSelector
 
 		if (pocket.IsUnknown(SemiPrivateThreshold))
 		{
-			return 7;
+			return 8;
 		}
 
 		var containedRecipientLabelsCount = pocket.Labels.Count(label => Recipient.Contains(label, StringComparer.OrdinalIgnoreCase));
@@ -161,7 +174,6 @@ public class SmartCoinSelector : ICoinSelector
 			return 4 + (2 - index);
 		}
 
-		var x = 6 + 1 - (1M / pocket.Labels.Count);
-		return x;
+		return 7 + (1 - 1M / pocket.Labels.Count);
 	}
 }
