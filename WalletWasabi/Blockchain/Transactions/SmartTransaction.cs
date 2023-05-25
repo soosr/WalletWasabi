@@ -164,7 +164,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public int BlockIndex { get; private set; }
 
 	[JsonProperty]
-	[JsonConverter(typeof(SmartLabelJsonConverter))]
+	[JsonConverter(typeof(LabelsArrayJsonConverter))]
 	public SmartLabel Label { get; set; }
 
 	[JsonProperty]

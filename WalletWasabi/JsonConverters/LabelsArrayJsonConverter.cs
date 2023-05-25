@@ -3,7 +3,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 
 namespace WalletWasabi.JsonConverters;
 
-public class SmartLabelJsonConverter : JsonConverter<SmartLabel>
+public class LabelsArrayJsonConverter : JsonConverter<SmartLabel>
 {
 	/// <inheritdoc />
 	public override SmartLabel ReadJson(JsonReader reader, Type objectType, SmartLabel existingValue, bool hasExistingValue, JsonSerializer serializer)

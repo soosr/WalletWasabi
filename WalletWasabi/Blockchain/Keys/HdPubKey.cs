@@ -80,7 +80,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	public KeyPath FullKeyPath { get; }
 
 	[JsonProperty(Order = 3)]
-	[JsonConverter(typeof(SmartLabelJsonConverter))]
+	[JsonConverter(typeof(LabelsArrayJsonConverter))]
 	public SmartLabel Label { get; private set; }
 
 	[JsonProperty(Order = 4)]
