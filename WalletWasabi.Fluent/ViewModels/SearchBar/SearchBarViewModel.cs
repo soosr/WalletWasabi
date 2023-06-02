@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
+using System.Windows.Input;
 using DynamicData;
 using DynamicData.Aggregation;
 using DynamicData.Binding;
@@ -44,7 +43,7 @@ public partial class SearchBarViewModel : ReactiveObject
 		});
 	}
 
-	public ReactiveCommand<Unit, Unit> ActivateFirstItemCommand { get; set; }
+	public ICommand ActivateFirstItemCommand { get; set; }
 
 	public IObservable<bool> HasResults { get; }
 
