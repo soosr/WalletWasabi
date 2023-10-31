@@ -38,8 +38,6 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 			.DisposeWith(disposables);
 
 		Wallet.Coins.List
-			.ToObservableChangeSet(x => x.Key)
-			.ToCollection()
 			.Subscribe(x => itemsSourceList.Edit(l => Update(l, x)))
 			.DisposeWith(disposables);
 	}

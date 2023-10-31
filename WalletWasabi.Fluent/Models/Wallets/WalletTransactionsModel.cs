@@ -21,13 +21,11 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
-public partial class WalletTransactionsModel : ReactiveObject, IDisposable
+public partial class WalletTransactionsModel : ReactiveObject
 {
 	private readonly IWalletModel _walletModel;
 	private readonly Wallet _wallet;
 	private readonly TransactionTreeBuilder _treeBuilder;
-	private readonly ReadOnlyObservableCollection<TransactionModel> _transactions;
-	private readonly CompositeDisposable _disposable = new();
 
 	public WalletTransactionsModel(IWalletModel walletModel, Wallet wallet)
 	{
@@ -47,38 +45,18 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 					  .Select(x => (walletModel, x.EventArgs))
 					  .ObserveOn(RxApp.MainThreadScheduler);
 
-		var retriever =
-			new SignaledFetcher<TransactionModel, uint256>(TransactionProcessed, model => model.Id, BuildSummary)
-				.DisposeWith(_disposable);
+		List = TransactionProcessed.Select(_ => BuildSummary().ToArray());
 
-		retriever.Changes.Bind(out _transactions)
-			.Subscribe()
-			.DisposeWith(_disposable);
-
-		IsEmpty = retriever.Changes.AsObservableCache().CountChanged.Select(i => i == 0);
+		IsEmpty = List.Select(x => !x.Any());
 	}
 
-	public ReadOnlyObservableCollection<TransactionModel> List => _transactions;
+	public IObservable<TransactionModel[]> List { get; }
 
 	public IObservable<bool> IsEmpty { get; }
 
 	public IObservable<Unit> TransactionProcessed { get; }
 
 	public IObservable<(IWalletModel Wallet, ProcessedResult EventArgs)> NewTransactionArrived { get; }
-
-	public bool TryGetById(uint256 transactionId, [NotNullWhen(true)] out TransactionModel? transaction)
-	{
-		var result = List.FirstOrDefault(x => x.Id == transactionId);
-
-		if (result is null)
-		{
-			transaction = default;
-			return false;
-		}
-
-		transaction = result;
-		return true;
-	}
 
 	public async Task<SmartTransaction> LoadFromFileAsync(string path)
 	{
@@ -158,6 +136,4 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		var originalFee = transactionToSpeedUp.WalletInputs.Sum(x => x.Amount) - transactionToSpeedUp.OutputValues.Sum(x => x);
 		return boostingTransactionFee - originalFee;
 	}
-
-	public void Dispose() => _disposable.Dispose();
 }

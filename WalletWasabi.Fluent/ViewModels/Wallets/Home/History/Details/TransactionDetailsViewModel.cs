@@ -96,17 +96,11 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		_wallet.Transactions.TransactionProcessed
-							.Do(_ => UpdateCurrentTransaction())
-							.Subscribe()
-							.DisposeWith(disposables);
-	}
-
-	private void UpdateCurrentTransaction()
-	{
-		if (_wallet.Transactions.TryGetById(TransactionId, out var transaction))
-		{
-			UpdateValues(transaction.TransactionSummary);
-		}
+		_wallet.Transactions.List
+			.Select(x => x.FirstOrDefault(model => model.Id == TransactionId))
+			.WhereNotNull()
+			.Do(x => UpdateValues(x.TransactionSummary))
+			.Subscribe()
+			.DisposeWith(disposables);
 	}
 }

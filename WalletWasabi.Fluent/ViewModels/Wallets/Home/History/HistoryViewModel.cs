@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -219,18 +219,26 @@ public partial class HistoryViewModel : ActivatableViewModel
 		base.OnActivated(disposables);
 
 		_wallet.Transactions.List
-							.ToObservableChangeSet(model => model.Id)
-							.Transform(x => CreateViewModel(x))
-							.Sort(SortExpressionComparer<HistoryItemViewModelBase>
-								.Ascending(x => x.Transaction.IsConfirmed)
-								.ThenByDescending(x => x.Transaction.OrderIndex))
-							.Bind(Transactions)
-							.Subscribe()
-							.DisposeWith(disposables);
+			.Select(CreateViewModelList)
+			.Do(history =>
+			{
+				Transactions.Clear();
+				Transactions.AddRange(history);
+			})
+			.Subscribe()
+			.DisposeWith(disposables);
 
 		_wallet.Transactions.IsEmpty
 							.BindTo(this, x => x.IsTransactionHistoryEmpty)
 							.DisposeWith(disposables);
+	}
+
+	private IEnumerable<HistoryItemViewModelBase> CreateViewModelList(TransactionModel[] transactions)
+	{
+		return transactions
+			.Select(x => CreateViewModel(x))
+			.OrderBy(x => x.Transaction.IsConfirmed)
+			.ThenByDescending(x => x.Transaction.OrderIndex);
 	}
 
 	private HistoryItemViewModelBase CreateViewModel(TransactionModel transaction, HistoryItemViewModelBase? parent = null)
