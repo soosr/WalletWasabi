@@ -29,8 +29,6 @@ public partial class MainViewModel : ViewModelBase
 
 	private string x;
 
-	build
-		
 	public MainViewModel(UiContext uiContext)
 	{
 		UiContext = uiContext;
