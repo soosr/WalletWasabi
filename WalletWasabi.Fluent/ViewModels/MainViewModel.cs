@@ -28,6 +28,8 @@ public partial class MainViewModel : ViewModelBase
 
 	private int _x = 1;
 
+	private string blabla;
+
 	public MainViewModel(UiContext uiContext)
 	{
 		UiContext = uiContext;
