@@ -7,6 +7,7 @@ using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -25,10 +26,6 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
 	[AutoNotify] private bool _isCoinJoinActive;
-
-	private int _x = 1;
-
-	private string blabla;
 
 	public MainViewModel(UiContext uiContext)
 	{
