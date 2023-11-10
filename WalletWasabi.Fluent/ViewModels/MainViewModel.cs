@@ -27,6 +27,10 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private bool _isOobeBackgroundVisible;
 	[AutoNotify] private bool _isCoinJoinActive;
 
+	private string x;
+
+	build
+		
 	public MainViewModel(UiContext uiContext)
 	{
 		UiContext = uiContext;
