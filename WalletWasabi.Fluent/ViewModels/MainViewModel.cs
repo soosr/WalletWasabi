@@ -29,7 +29,6 @@ public partial class MainViewModel : ViewModelBase
 	private int _x = 1;
 
 	private string blabla;
-		break build
 
 	public MainViewModel(UiContext uiContext)
 	{
