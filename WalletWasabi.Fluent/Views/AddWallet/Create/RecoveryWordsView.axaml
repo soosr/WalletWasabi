@@ -4,10 +4,14 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:CompileBindings="True"
              x:DataType="create:RecoveryWordsViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.RecoveryWordsView">
+  <UserControl.Resources>
+    <converters:RangeConverter x:Key="RangeConverter" />
+  </UserControl.Resources>
   <c:ContentArea Title="{Binding Title}"
                  Caption="Write down the recovery words in the correct order and store them in a safe place. They are needed to recover your wallet."
                  CancelContent="Cancel"
@@ -24,8 +28,24 @@
         <RowDefinition Height="20" />
       </Grid.RowDefinitions>
 
-      <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent">
-        <Panel.ContextMenu>
+      <Grid ColumnDefinitions="*,1,*,1,*" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent">
+        <Grid.Styles>
+            <Style Selector="TextBlock">
+              <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />
+              <Setter Property="Height" Value="42" />
+            </Style>
+          <Style Selector="ItemsControl">
+            <Setter Property="ItemTemplate">
+              <DataTemplate x:DataType="create:RecoveryWordViewModel">
+                <StackPanel Orientation="Horizontal" Margin="50 0 50 0" Width="80">
+                  <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" />
+                  <TextBlock Text="{Binding Word}" FontWeight="SemiBold" Margin="5 0 0 0" />
+                </StackPanel>
+              </DataTemplate>
+            </Setter>
+          </Style>
+        </Grid.Styles>
+        <Grid.ContextMenu>
           <ContextMenu>
             <MenuItem Header="Copy recovery words"
                       Command="{Binding CopyToClipboardCommand}">
@@ -34,34 +54,15 @@
               </MenuItem.Icon>
             </MenuItem>
           </ContextMenu>
-        </Panel.ContextMenu>
-        <ItemsControl ItemsSource="{Binding MnemonicWords}">
-          <ItemsControl.Styles>
-            <Style Selector="TextBlock">
-              <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />
-              <Setter Property="Height" Value="42" />
-            </Style>
-          </ItemsControl.Styles>
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <WrapPanel MaxHeight="168" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <StackPanel Orientation="Horizontal" Margin="50 0 50 0" Width="80">
-                <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" />
-                <TextBlock Text="{Binding Word}" FontWeight="SemiBold" Margin="5 0 0 0" />
-              </StackPanel>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        </Grid.ContextMenu>
 
-        <Grid ColumnDefinitions="*,1,*,1,*">
-          <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20" />
-          <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20" />
-        </Grid>
-      </Panel>
+        <ItemsControl Grid.Column="0" ItemsSource="{Binding MnemonicWords, Converter={StaticResource RangeConverter}, ConverterParameter='0..3'}" />
+        <Separator Grid.Column="1" Classes="vertical" Margin="0 0 0 20" />
+        <ItemsControl Grid.Column="2" ItemsSource="{Binding MnemonicWords, Converter={StaticResource RangeConverter}, ConverterParameter='4..7'}" />
+        <Separator Grid.Column="3" Classes="vertical" Margin="0 0 0 20" />
+        <ItemsControl Grid.Column="4" ItemsSource="{Binding MnemonicWords, Converter={StaticResource RangeConverter}, ConverterParameter='8..11'}" />
+
+      </Grid>
 
       <c:InfoMessage Opacity="0.5"
                      HorizontalAlignment="Center"
