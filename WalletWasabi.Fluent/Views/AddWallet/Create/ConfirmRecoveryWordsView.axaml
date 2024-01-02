@@ -4,10 +4,14 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="create:ConfirmRecoveryWordsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.ConfirmRecoveryWordsView">
+  <UserControl.Resources>
+    <converters:RangeConverter x:Key="RangeConverter" />
+  </UserControl.Resources>
   <c:ContentArea Title="{Binding Title}"
                  Caption="{Binding CurrentWord.Index, StringFormat='Click the recovery word #{0}', FallbackValue=' '}"
                  EnableCancel="{Binding EnableCancel}"
@@ -17,78 +21,72 @@
                  EnableSkip="{Binding IsSkipEnabled}"
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <Grid x:Name="Layout">
-      <Grid.RowDefinitions>
-        <RowDefinition MinHeight="70" Height="*" />
-        <RowDefinition Height="16" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="*" />
-        <RowDefinition Height="20" />
-      </Grid.RowDefinitions>
 
-      <ItemsControl ItemsSource="{Binding AvailableWords}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="30 0">
-        <ItemsControl.ItemsPanel>
-          <ItemsPanelTemplate>
-            <WrapPanel />
-          </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-        <ItemsControl.ItemTemplate>
-          <DataTemplate x:DataType="create:RecoveryWordViewModel">
-            <ToggleButton IsChecked="{Binding IsSelected}" Margin="2 0">
-              <ToggleButton.IsEnabled>
-                <MultiBinding Converter="{x:Static BoolConverters.And}">
-                  <Binding Path="IsEnabled" />
-                  <Binding Path="IsConfirmed" Converter="{x:Static BoolConverters.Not}" />
-                </MultiBinding>
-              </ToggleButton.IsEnabled>
-              <ToggleButton.Styles>
-                <Style Selector="ToggleButton /template/ c|TagControl">
-                  <Setter Property="Cursor" Value="Hand" />
-                </Style>
-                <Style Selector="ToggleButton[IsEnabled=False] /template/ c|TagControl">
-                  <Setter Property="Opacity" Value="0.6" />
-                  <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
-                  <Setter Property="BorderBrush" Value="{DynamicResource ButtonForegroundDisabled}" />
-                </Style>
-              </ToggleButton.Styles>
-              <ToggleButton.Template>
-                <ControlTemplate>
-                  <c:TagControl DataContext="{Binding Word}" Content="{Binding .}" ToolTip.Tip="{x:Null}" />
-                </ControlTemplate>
-              </ToggleButton.Template>
-            </ToggleButton>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
+    <DockPanel>
 
-      <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
-        <ItemsControl ItemsSource="{Binding ConfirmationWords}">
-          <ItemsControl.Styles>
-            <Style Selector="TextBlock.error">
-              <Setter Property="Foreground" Value="{DynamicResource SystemErrorTextColor}" />
-            </Style>
-          </ItemsControl.Styles>
+      <Panel DockPanel.Dock="Top" Height="86" Margin="30 0" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <ItemsControl ItemsSource="{Binding AvailableWords}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <WrapPanel MaxHeight="168" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
+              <WrapPanel />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <StackPanel Orientation="Horizontal" Margin="50 0 50 0" Width="80">
-                <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" FontSize="{DynamicResource FontSizeH6}" Height="42" />
-                <TextBlock Text="{Binding SelectedWord}" FontWeight="SemiBold" Margin="5 0 0 0"
-                           Classes.error="{Binding !IsConfirmed}" FontSize="{DynamicResource FontSizeH6}" Height="42" />
-              </StackPanel>
+            <DataTemplate x:DataType="create:RecoveryWordViewModel">
+              <ToggleButton IsChecked="{Binding IsSelected}" Margin="2 0">
+                <ToggleButton.IsEnabled>
+                  <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="IsEnabled" />
+                    <Binding Path="IsConfirmed" Converter="{x:Static BoolConverters.Not}" />
+                  </MultiBinding>
+                </ToggleButton.IsEnabled>
+                <ToggleButton.Styles>
+                  <Style Selector="ToggleButton /template/ c|TagControl">
+                    <Setter Property="Cursor" Value="Hand" />
+                  </Style>
+                  <Style Selector="ToggleButton[IsEnabled=False] /template/ c|TagControl">
+                    <Setter Property="Opacity" Value="0.6" />
+                    <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource ButtonForegroundDisabled}" />
+                  </Style>
+                </ToggleButton.Styles>
+                <ToggleButton.Template>
+                  <ControlTemplate>
+                    <c:TagControl DataContext="{Binding Word}" Content="{Binding .}" ToolTip.Tip="{x:Null}" />
+                  </ControlTemplate>
+                </ToggleButton.Template>
+              </ToggleButton>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
-
-        <Grid ColumnDefinitions="*,1,*,1,*">
-          <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20" />
-          <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20" />
-        </Grid>
       </Panel>
-    </Grid>
+
+      <Grid ColumnDefinitions="*,1,*,1,*" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent">
+        <Grid.Styles>
+          <Style Selector="TextBlock.error">
+            <Setter Property="Foreground" Value="{DynamicResource SystemErrorTextColor}" />
+          </Style>
+          <Style Selector="ItemsControl">
+            <Setter Property="ItemTemplate">
+              <DataTemplate x:DataType="create:RecoveryWordViewModel">
+                <StackPanel Orientation="Horizontal" Margin="50 0 50 0" Width="80">
+                  <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" FontSize="{DynamicResource FontSizeH6}" Height="42" />
+                  <TextBlock Text="{Binding SelectedWord}" FontWeight="SemiBold" Margin="5 0 0 0"
+                             Classes.error="{Binding !IsConfirmed}" FontSize="{DynamicResource FontSizeH6}" Height="42" />
+                </StackPanel>
+              </DataTemplate>
+            </Setter>
+          </Style>
+        </Grid.Styles>
+
+        <ItemsControl Grid.Column="0" ItemsSource="{Binding ConfirmationWords, Converter={StaticResource RangeConverter}, ConverterParameter='0..3'}" />
+        <Separator Grid.Column="1" Classes="vertical" Margin="0 0 0 20" />
+        <ItemsControl Grid.Column="2" ItemsSource="{Binding ConfirmationWords, Converter={StaticResource RangeConverter}, ConverterParameter='4..7'}" />
+        <Separator Grid.Column="3" Classes="vertical" Margin="0 0 0 20" />
+        <ItemsControl Grid.Column="4" ItemsSource="{Binding ConfirmationWords, Converter={StaticResource RangeConverter}, ConverterParameter='8..11'}" />
+
+      </Grid>
+    </DockPanel>
+
   </c:ContentArea>
 </UserControl>
