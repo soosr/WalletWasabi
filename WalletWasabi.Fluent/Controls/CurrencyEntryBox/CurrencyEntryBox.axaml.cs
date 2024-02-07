@@ -10,6 +10,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using ReactiveUI;
 using WalletWasabi.Fluent.Behaviors;
@@ -40,6 +41,7 @@ public partial class CurrencyEntryBox : TextBox
 	private CompositeDisposable _disposables = new();
 	private bool _isUpdating;
 	private bool _isUpdatingSelection;
+	private bool _isUpdatingCaretIndex;
 
 	public CurrencyEntryBox()
 	{
@@ -63,11 +65,24 @@ public partial class CurrencyEntryBox : TextBox
 				SetCurrentValue(CurrencyFormatProperty, viewModel.CurrencyFormat);
 
 				viewModel.WhenAnyValue(x => x.InsertPosition)
-						 .BindTo(this, x => x.CaretIndex)
+						 .Subscribe(x =>
+						 {
+							 if (_isUpdatingCaretIndex)
+							 {
+								 return;
+							 }
+
+							 _isUpdatingCaretIndex = true;
+							 CaretIndex = x;
+							 _isUpdatingCaretIndex = false;
+						 })
 						 .DisposeWith(_disposables);
 
 				viewModel.WhenAnyValue(x => x.Text)
-						 .BindTo(this, x => x.Text)
+						 .Subscribe(x =>
+						 {
+							 Text = x;
+						 })
 						 .DisposeWith(_disposables);
 
 				viewModel.WhenAnyValue(x => x.Value)
@@ -96,7 +111,17 @@ public partial class CurrencyEntryBox : TextBox
 						 .DisposeWith(_disposables);
 
 				this.GetObservable(CaretIndexProperty)
-					.Do(viewModel.SetInsertPosition)
+					.Do(x =>
+					{
+						if (_isUpdatingCaretIndex)
+						{
+							return;
+						}
+
+						_isUpdatingCaretIndex = true;
+						viewModel.SetInsertPosition(x);
+						_isUpdatingCaretIndex = false;
+					})
 					.Subscribe()
 					.DisposeWith(_disposables);
 
@@ -194,6 +219,11 @@ public partial class CurrencyEntryBox : TextBox
 		{
 			DataValidationErrors.SetError(this, error);
 		}
+	}
+
+	protected override void OnTextInput(TextInputEventArgs e)
+	{
+		e.Handled = true;
 	}
 
 	private void CustomOnKeyDown(object? sender, KeyEventArgs e)
