@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.Controls.EnhancedScrollViewer;
 
 public class ScrollBarExpansionBehavior : AttachedToVisualTreeBehavior<ScrollBar>
 {
-    private readonly SerialDisposable serialDisposable = new();
+    private readonly SerialDisposable _serialDisposable = new();
 
     private static ScrollViewerExpansionStrategy CreateStrategy(ScrollBar scrollBar, Type strategyType)
     {
@@ -35,12 +35,12 @@ public class ScrollBarExpansionBehavior : AttachedToVisualTreeBehavior<ScrollBar
             return;
         }
 
-        serialDisposable.DisposeWith(disposable);
+        _serialDisposable.DisposeWith(disposable);
 
         parentScrollViewer.GetObservable(Expansion.HotAreaProperty)
             .Select(GetExpansionType)
             .Select(x => CreateStrategy(AssociatedObject!, x))
-            .Do(s => serialDisposable.Disposable = s)
+            .Do(s => _serialDisposable.Disposable = s)
             .Subscribe()
             .DisposeWith(disposable);
     }

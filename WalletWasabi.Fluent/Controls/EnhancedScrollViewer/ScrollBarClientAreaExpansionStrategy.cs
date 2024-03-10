@@ -1,4 +1,4 @@
-﻿using System.Reactive.Disposables;
+using System.Reactive.Disposables;
 using Avalonia.Controls.Primitives;
 
 namespace WalletWasabi.Fluent.Controls.EnhancedScrollViewer;
@@ -6,15 +6,15 @@ namespace WalletWasabi.Fluent.Controls.EnhancedScrollViewer;
 
 public class ScrollBarClientAreaExpansionStrategy : ScrollViewerExpansionStrategy
 {
-    private readonly CompositeDisposable disposables = new();
+    private readonly CompositeDisposable _disposables = new();
 
     public ScrollBarClientAreaExpansionStrategy(ScrollBar scrollBar)
     {
-        ExpandOnHover(scrollBar, scrollBar).DisposeWith(disposables);
+        ExpandOnHover(scrollBar, scrollBar).DisposeWith(_disposables);
     }
 
     public override void Dispose()
     {
-        disposables.Dispose();
+        _disposables.Dispose();
     }
 }

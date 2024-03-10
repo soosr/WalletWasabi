@@ -8,7 +8,9 @@ namespace WalletWasabi.Fluent.Controls.EnhancedScrollViewer;
 
 public abstract class ScrollViewerExpansionStrategy : IDisposable
 {
-    protected static IDisposable ExpandOnHover(ScrollBar scrollBar, AvaloniaObject mouseTarget)
+	public abstract void Dispose();
+
+	protected static IDisposable ExpandOnHover(ScrollBar scrollBar, AvaloniaObject mouseTarget)
     {
         var isExpandedProperty = typeof(ScrollBar).GetProperty("IsExpanded");
 
@@ -18,7 +20,7 @@ public abstract class ScrollViewerExpansionStrategy : IDisposable
         }
 
         var hideAfter = scrollBar.GetValue(Expansion.HideAfterProperty);
-        var pointerEnter = Observable.FromEventPattern(mouseTarget, "PointerEntered").Select(pattern => Observable.Return(true));
+        var pointerEnter = Observable.FromEventPattern(mouseTarget, "PointerEntered").Select(_ => Observable.Return(true));
         var pointerExit = Observable.FromEventPattern(mouseTarget, "PointerExited").Select(_ => Observable.Return(false).Delay(hideAfter, AvaloniaScheduler.Instance));
 
         var isExpanded = pointerEnter.Merge(pointerExit).Switch();
@@ -27,6 +29,4 @@ public abstract class ScrollViewerExpansionStrategy : IDisposable
             .Do(b => isExpandedProperty.SetValue(scrollBar, b))
             .Subscribe();
     }
-    
-    public abstract void Dispose();
 }
