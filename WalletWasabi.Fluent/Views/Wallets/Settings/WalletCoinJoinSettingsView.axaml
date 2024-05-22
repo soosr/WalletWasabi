@@ -10,8 +10,6 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletCoinJoinSettingsView"
              x:CompileBindings="True">
 
-  <StackPanel Spacing="20">
-
     <StackPanel Classes="settingsLayout">
 
       <DockPanel>
@@ -19,11 +17,10 @@
         <ToggleSwitch IsChecked="{Binding AutoCoinJoin, Mode=OneWay}" Command="{Binding SetAutoCoinJoin}" />
       </DockPanel>
 
-      <StackPanel Spacing="10"
-                  ToolTip.Tip="Coinjoin will not automatically start if the wallet balance is less than this.">
+      <DockPanel ToolTip.Tip="Coinjoin will not automatically start if the wallet balance is less than this.">
         <TextBlock Text="Auto-start coinjoin threshold" />
         <CurrencyEntryBox Classes="standalone" Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
-      </StackPanel>
+      </DockPanel>
 
       <DockPanel>
         <TextBlock Text="Coinjoin strategy:" VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0" />
@@ -51,5 +48,4 @@
         </ComboBox>
       </DockPanel>
     </StackPanel>
-  </StackPanel>
 </UserControl>

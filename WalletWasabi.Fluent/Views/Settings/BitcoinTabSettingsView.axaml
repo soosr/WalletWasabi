@@ -9,12 +9,10 @@
              x:CompileBindings="True">
   <StackPanel Classes="settingsLayout">
 
-    <StackPanel Spacing="10">
+    <DockPanel>
       <TextBlock Text="Network" />
-      <ComboBox HorizontalAlignment="Stretch"
-                ItemsSource="{Binding Networks}"
-                SelectedItem="{Binding Settings.Network}" />
-    </StackPanel>
+      <ComboBox ItemsSource="{Binding Networks}" SelectedItem="{Binding Settings.Network}" />
+    </DockPanel>
 
     <DockPanel>
       <TextBlock VerticalAlignment="Center" Text="(EXPERIMENTAL) Run Bitcoin Knots on startup" />
@@ -31,23 +29,22 @@
       <Label Content="{Binding BitcoinCoreVersion}" />
     </DockPanel>
 
-    <StackPanel Spacing="10" IsVisible="{Binding Settings.StartLocalBitcoinCoreOnStartup}">
+    <DockPanel IsVisible="{Binding Settings.StartLocalBitcoinCoreOnStartup}">
       <TextBlock Text="Bitcoin Core/Knots Data Folder" />
       <TextBox Text="{Binding Settings.LocalBitcoinCoreDataDir}" />
-    </StackPanel>
+    </DockPanel>
 
     <DockPanel IsVisible="{Binding !Settings.StartLocalBitcoinCoreOnStartup}"
                ToolTip.Tip="Wasabi will download blocks from a full node you control.">
       <TextBlock Text="Bitcoin P2P Endpoint" />
-      <PrivacyContentControl PrivacyReplacementMode="Text" VerticalAlignment="Bottom" UseOpacity="True">
+      <PrivacyContentControl PrivacyReplacementMode="Text" UseOpacity="True">
         <TextBox Text="{Binding BitcoinP2PEndPoint}" />
       </PrivacyContentControl>
     </DockPanel>
 
-    <StackPanel Spacing="10"
-                ToolTip.Tip="Coins received from others to already used addresses won't appear below this amount. To prevent potential dust attacks.">
+    <DockPanel ToolTip.Tip="Coins received from others to already used addresses won't appear below this amount. To prevent potential dust attacks.">
       <TextBlock Text="Dust Threshold" />
       <CurrencyEntryBox Classes="standalone" Text="{Binding DustThreshold}" CurrencyCode="BTC" />
-    </StackPanel>
+    </DockPanel>
   </StackPanel>
 </UserControl>
